@@ -21,6 +21,7 @@ class AppState extends ChangeNotifier {
   AppPreferences prefs = const AppPreferences();
   final List<WorkoutSession> workouts = [];
   final List<LibraryExercise> library = [];
+  WorkoutSession? _activeSession;
 
   bool get needsSetup => !prefs.setupCompleted;
   Color? get customAccentColor => parseHexColor(prefs.customAccentHex);
@@ -47,14 +48,14 @@ class AppState extends ChangeNotifier {
         await _storage.saveLibrary(library);
       }
 
-      _ensureTodaySessionExists();
+      _ensureActiveSessionExists();
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  WorkoutSession get todaySession => _ensureTodaySessionExists();
+  WorkoutSession get todaySession => _ensureActiveSessionExists();
 
   List<String> get allExerciseNames {
     final names = <String>{};
@@ -121,14 +122,21 @@ class AppState extends ChangeNotifier {
 
   void startNewDay() {
     final today = _todayIso();
+    final current = _ensureActiveSessionExists();
+    if (current.date == today && current.exercises.isEmpty) return;
+
     if (workouts.isNotEmpty) {
       final last = workouts.last;
       if (last.date == today && last.exercises.isEmpty) {
+        _activeSession = last;
+        notifyListeners();
         return;
       }
     }
 
-    workouts.add(WorkoutSession(date: today));
+    final created = WorkoutSession(date: today);
+    workouts.add(created);
+    _activeSession = created;
     _persistWorkouts();
     notifyListeners();
   }
@@ -302,9 +310,11 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> resetAllData() async {
+    final fresh = WorkoutSession(date: _todayIso());
     workouts
       ..clear()
-      ..add(WorkoutSession(date: _todayIso()));
+      ..add(fresh);
+    _activeSession = fresh;
 
     library
       ..clear()
@@ -336,18 +346,20 @@ class AppState extends ChangeNotifier {
     unawaited(_storage.saveLibrary(library));
   }
 
-  WorkoutSession _ensureTodaySessionExists() {
-    final today = _todayIso();
-
-    for (var i = workouts.length - 1; i >= 0; i--) {
-      final session = workouts[i];
-      if (session.date == today) {
-        return session;
-      }
+  WorkoutSession _ensureActiveSessionExists() {
+    final current = _activeSession;
+    if (current != null && workouts.contains(current)) {
+      return current;
     }
 
-    final created = WorkoutSession(date: today);
+    if (workouts.isNotEmpty) {
+      _activeSession = workouts.last;
+      return _activeSession!;
+    }
+
+    final created = WorkoutSession(date: _todayIso());
     workouts.add(created);
+    _activeSession = created;
     _persistWorkouts();
     return created;
   }

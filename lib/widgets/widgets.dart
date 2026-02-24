@@ -64,12 +64,17 @@ class DropsDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (drops.isEmpty) return const SizedBox();
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: drops.map((d) => Text(
-        ' -> ${d.weight}x${d.reps}',
-        style: TextStyle(fontSize: 11, color: kBlue),
-      )).toList(),
+    return Wrap(
+      spacing: 4,
+      runSpacing: 4,
+      children: drops
+          .map(
+            (d) => Text(
+              '-> ${formatWeight(d.weight)}x${d.reps}',
+              style: TextStyle(fontSize: 11, color: kBlue),
+            ),
+          )
+          .toList(),
     );
   }
 }
