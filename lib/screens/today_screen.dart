@@ -20,7 +20,8 @@ class TodayScreen extends StatelessWidget {
       builder: (context, state, _) {
         final session = state.todaySession;
         final locale = state.prefs.language == 'en' ? 'en_US' : 'it_IT';
-        final dateStr = DateFormat('EEEE d MMMM', locale).format(DateTime.now());
+        final sessionDate = DateTime.tryParse(session.date) ?? DateTime.now();
+        final dateStr = DateFormat('EEEE d MMMM', locale).format(sessionDate);
 
         return Scaffold(
           backgroundColor: kBg,
@@ -226,7 +227,10 @@ class _ExerciseCardState extends State<_ExerciseCard> {
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.symmetric(vertical: 8),
-                                      child: Row(
+                                      child: Wrap(
+                                        spacing: 6,
+                                        runSpacing: 6,
+                                        crossAxisAlignment: WrapCrossAlignment.center,
                                         children: [
                                           Text('${s.reps} rep', style: TextStyle(fontSize: 14, color: kText)),
                                           SeriesBadge(s.type),
