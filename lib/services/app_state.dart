@@ -142,46 +142,120 @@ class AppState extends ChangeNotifier {
   }
 
   void addExerciseToToday(String exerciseName) {
-    final name = exerciseName.trim();
-    if (name.isEmpty) return;
-
-    final session = todaySession;
-    final exists = session.exercises.any((ex) => _sameName(ex.name, name));
-    if (exists) return;
-
-    session.exercises.add(ExerciseLog(name: name));
-    _persistWorkouts();
-    notifyListeners();
+    addExerciseToSession(todaySession, exerciseName);
   }
 
   void removeExerciseFromToday(int exerciseIndex) {
-    final session = todaySession;
-    if (exerciseIndex < 0 || exerciseIndex >= session.exercises.length) return;
-
-    session.exercises.removeAt(exerciseIndex);
-    _persistWorkouts();
-    notifyListeners();
+    removeExerciseFromSession(todaySession, exerciseIndex);
   }
 
   void addSeries(int exerciseIndex, Series series) {
-    final session = todaySession;
-    if (exerciseIndex < 0 || exerciseIndex >= session.exercises.length) return;
+    addSeriesToSession(todaySession, exerciseIndex, series);
+  }
 
-    session.exercises[exerciseIndex].series.add(series);
+  void removeSeries(int exerciseIndex, int seriesIndex) {
+    removeSeriesFromSession(todaySession, exerciseIndex, seriesIndex);
+  }
+
+  void updateSeries(int exerciseIndex, int seriesIndex, Series series) {
+    updateSeriesInSession(todaySession, exerciseIndex, seriesIndex, series);
+  }
+
+  bool addExerciseToSession(WorkoutSession session, String exerciseName) {
+    final name = exerciseName.trim();
+    if (name.isEmpty) return false;
+
+    final targetSession = _resolveSession(session);
+    if (targetSession == null) return false;
+
+    final exists = targetSession.exercises.any((ex) => _sameName(ex.name, name));
+    if (exists) return false;
+
+    targetSession.exercises.add(ExerciseLog(name: name));
+    _persistWorkouts();
+    notifyListeners();
+    return true;
+  }
+
+  bool updateExerciseNameInSession(WorkoutSession session, int exerciseIndex, String exerciseName) {
+    final name = exerciseName.trim();
+    if (name.isEmpty) return false;
+
+    final targetSession = _resolveSession(session);
+    if (targetSession == null) return false;
+    if (exerciseIndex < 0 || exerciseIndex >= targetSession.exercises.length) return false;
+
+    final duplicate = targetSession.exercises.asMap().entries.any(
+      (entry) => entry.key != exerciseIndex && _sameName(entry.value.name, name),
+    );
+    if (duplicate) return false;
+
+    targetSession.exercises[exerciseIndex].name = name;
+    _persistWorkouts();
+    notifyListeners();
+    return true;
+  }
+
+  void removeExerciseFromSession(WorkoutSession session, int exerciseIndex) {
+    final targetSession = _resolveSession(session);
+    if (targetSession == null) return;
+    if (exerciseIndex < 0 || exerciseIndex >= targetSession.exercises.length) return;
+
+    targetSession.exercises.removeAt(exerciseIndex);
     _persistWorkouts();
     notifyListeners();
   }
 
-  void removeSeries(int exerciseIndex, int seriesIndex) {
-    final session = todaySession;
-    if (exerciseIndex < 0 || exerciseIndex >= session.exercises.length) return;
+  void addSeriesToSession(WorkoutSession session, int exerciseIndex, Series series) {
+    final targetSession = _resolveSession(session);
+    if (targetSession == null) return;
+    if (exerciseIndex < 0 || exerciseIndex >= targetSession.exercises.length) return;
 
-    final target = session.exercises[exerciseIndex].series;
+    targetSession.exercises[exerciseIndex].series.add(series);
+    _persistWorkouts();
+    notifyListeners();
+  }
+
+  void updateSeriesInSession(WorkoutSession session, int exerciseIndex, int seriesIndex, Series series) {
+    final targetSession = _resolveSession(session);
+    if (targetSession == null) return;
+    if (exerciseIndex < 0 || exerciseIndex >= targetSession.exercises.length) return;
+
+    final targetSeries = targetSession.exercises[exerciseIndex].series;
+    if (seriesIndex < 0 || seriesIndex >= targetSeries.length) return;
+
+    targetSeries[seriesIndex] = series;
+    _persistWorkouts();
+    notifyListeners();
+  }
+
+  void removeSeriesFromSession(WorkoutSession session, int exerciseIndex, int seriesIndex) {
+    final targetSession = _resolveSession(session);
+    if (targetSession == null) return;
+    if (exerciseIndex < 0 || exerciseIndex >= targetSession.exercises.length) return;
+
+    final target = targetSession.exercises[exerciseIndex].series;
     if (seriesIndex < 0 || seriesIndex >= target.length) return;
 
     target.removeAt(seriesIndex);
     _persistWorkouts();
     notifyListeners();
+  }
+
+  bool updateSessionDate(WorkoutSession session, String isoDate) {
+    final cleanDate = isoDate.trim();
+    if (cleanDate.isEmpty) return false;
+
+    final parsedDate = DateTime.tryParse(cleanDate);
+    if (parsedDate == null) return false;
+
+    final targetSession = _resolveSession(session);
+    if (targetSession == null) return false;
+
+    targetSession.date = parsedDate.toIso8601String().split('T').first;
+    _persistWorkouts();
+    notifyListeners();
+    return true;
   }
 
   ExerciseLog? getLastExerciseLog(String exerciseName) {
@@ -195,6 +269,23 @@ class AppState extends ChangeNotifier {
       if (identical(session, currentSession)) continue;
 
       for (final ex in session.exercises) {
+        if (_sameName(ex.name, target) && ex.series.isNotEmpty) {
+          return ex;
+        }
+      }
+    }
+    return null;
+  }
+
+  ExerciseLog? getPreviousExerciseLog(WorkoutSession session, String exerciseName) {
+    final target = exerciseName.trim().toLowerCase();
+    if (target.isEmpty) return null;
+
+    final sessionIndex = workouts.indexOf(session);
+    if (sessionIndex <= 0) return null;
+
+    for (var i = sessionIndex - 1; i >= 0; i--) {
+      for (final ex in workouts[i].exercises) {
         if (_sameName(ex.name, target) && ex.series.isNotEmpty) {
           return ex;
         }
@@ -287,20 +378,41 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateLibraryExercise(String id, String name, String category) {
+  bool updateLibraryExercise(String id, String name, String category) {
     final idx = library.indexWhere((e) => e.id == id);
-    if (idx == -1) return;
+    if (idx == -1) return false;
 
     final cleanName = name.trim();
-    if (cleanName.isEmpty) return;
+    if (cleanName.isEmpty) return false;
+
+    final duplicate = library.any((e) => e.id != id && _sameName(e.name, cleanName));
+    if (duplicate) return false;
+
+    final previousName = library[idx].name;
 
     library[idx]
       ..name = cleanName
       ..category = category.trim();
 
+    var didRenameOccurrences = false;
+    if (previousName != cleanName) {
+      for (final session in workouts) {
+        for (final ex in session.exercises) {
+          if (_sameName(ex.name, previousName)) {
+            ex.name = cleanName;
+            didRenameOccurrences = true;
+          }
+        }
+      }
+    }
+
     library.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    if (didRenameOccurrences) {
+      _persistWorkouts();
+    }
     _persistLibrary();
     notifyListeners();
+    return true;
   }
 
   void removeFromLibrary(String id) {
@@ -362,6 +474,12 @@ class AppState extends ChangeNotifier {
     _activeSession = created;
     _persistWorkouts();
     return created;
+  }
+
+  WorkoutSession? _resolveSession(WorkoutSession session) {
+    final idx = workouts.indexOf(session);
+    if (idx == -1) return null;
+    return workouts[idx];
   }
 
   WorkoutSession? _parseBlocknotes(String text, String date) {

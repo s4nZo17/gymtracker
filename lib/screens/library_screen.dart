@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import '../l10n/strings.dart';
 import '../services/app_state.dart';
 import '../models/models.dart';
 import '../theme.dart';
@@ -207,12 +208,26 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 onPressed: () {
                   final name = nameCtrl.text.trim();
                   if (name.isEmpty) return;
+                  var saved = true;
                   if (existing != null) {
-                    state.updateLibraryExercise(existing.id, name, catCtrl.text.trim());
+                    saved = state.updateLibraryExercise(existing.id, name, catCtrl.text.trim());
                   } else {
                     state.addToLibrary(name, catCtrl.text.trim());
                   }
-                  Navigator.pop(context);
+                  if (saved) {
+                    Navigator.pop(context);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          S.lang == 'it'
+                              ? 'Nome non valido o gia presente in libreria.'
+                              : 'Invalid name or already in library.',
+                        ),
+                        backgroundColor: kRed,
+                      ),
+                    );
+                  }
                 },
                 child: Text(existing != null ? 'Aggiorna' : 'Salva esercizio'),
               ),

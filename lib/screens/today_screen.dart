@@ -114,6 +114,35 @@ class _ExerciseCard extends StatefulWidget {
 class _ExerciseCardState extends State<_ExerciseCard> {
   bool _expanded = true;
 
+  void _openSeriesSheet(
+    BuildContext context,
+    AppState state,
+    ExerciseLog exercise,
+    ExerciseLog? lastLog, {
+    int? seriesIndex,
+  }) {
+    final editSeries = seriesIndex == null ? null : exercise.series[seriesIndex];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => SeriesSheet(
+        exerciseName: exercise.name,
+        seriesNumber: seriesIndex == null ? exercise.series.length + 1 : seriesIndex + 1,
+        lastSeries: lastLog?.series,
+        editSeries: editSeries,
+        onSave: (series) {
+          if (seriesIndex == null) {
+            state.addSeries(widget.exIdx, series);
+          } else {
+            state.updateSeries(widget.exIdx, seriesIndex, series);
+          }
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
@@ -200,7 +229,7 @@ class _ExerciseCardState extends State<_ExerciseCard> {
                               0: FixedColumnWidth(36),
                               1: FlexColumnWidth(2),
                               2: FlexColumnWidth(3),
-                              3: FixedColumnWidth(36),
+                              3: FixedColumnWidth(64),
                             },
                             children: [
                               TableRow(
@@ -242,8 +271,26 @@ class _ExerciseCardState extends State<_ExerciseCard> {
                                     Padding(
                                       padding: const EdgeInsets.symmetric(vertical: 8),
                                       child: GestureDetector(
-                                        onTap: () => state.removeSeries(widget.exIdx, i),
-                                        child: Icon(Icons.close, size: 16, color: kText3),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            GestureDetector(
+                                              onTap: () => _openSeriesSheet(
+                                                context,
+                                                state,
+                                                ex,
+                                                lastLog,
+                                                seriesIndex: i,
+                                              ),
+                                              child: Icon(Icons.edit_outlined, size: 16, color: kText3),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            GestureDetector(
+                                              onTap: () => state.removeSeries(widget.exIdx, i),
+                                              child: Icon(Icons.close, size: 16, color: kText3),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -255,17 +302,7 @@ class _ExerciseCardState extends State<_ExerciseCard> {
                         ],
 
                         GestureDetector(
-                          onTap: () => showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) => SeriesSheet(
-                              exerciseName: ex.name,
-                              seriesNumber: ex.series.length + 1,
-                              lastSeries: lastLog?.series,
-                              onSave: (s) => state.addSeries(widget.exIdx, s),
-                            ),
-                          ),
+                          onTap: () => _openSeriesSheet(context, state, ex, lastLog),
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 10),
