@@ -18,12 +18,29 @@ class ProgressScreen extends StatefulWidget {
 
 class _ProgressScreenState extends State<ProgressScreen> {
   String? _selectedEx;
+  String _search = '';
+
+  bool _matchesSearch(String name, String term) {
+    final cleanTerm = term.trim().toLowerCase();
+    if (cleanTerm.isEmpty) return true;
+    return name.toLowerCase().contains(cleanTerm);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, state, _) {
         final exNames = state.allExerciseNames;
+        final filteredNames = exNames.where((name) => _matchesSearch(name, _search)).toList();
+
+        if (_selectedEx != null && !exNames.contains(_selectedEx)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() => _selectedEx = null);
+          });
+        }
+
+        final selectedEx = filteredNames.contains(_selectedEx) ? _selectedEx : null;
 
         return Scaffold(
           backgroundColor: kBg,
@@ -32,6 +49,23 @@ class _ProgressScreenState extends State<ProgressScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                child: TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      _search = value;
+                      if (_selectedEx != null && !_matchesSearch(_selectedEx!, value)) {
+                        _selectedEx = null;
+                      }
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: S.get('search_exercise'),
+                    prefixIcon: Icon(Icons.search, color: kText3),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
@@ -40,12 +74,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     border: Border.all(color: kSurface3),
                   ),
                   child: DropdownButton<String>(
-                    value: _selectedEx,
+                    value: selectedEx,
                     hint: Text(S.get('select_exercise'), style: TextStyle(color: kText2)),
                     isExpanded: true,
                     underline: const SizedBox(),
                     dropdownColor: kSurface,
-                    items: exNames.map((n) => DropdownMenuItem(
+                    items: filteredNames.map((n) => DropdownMenuItem(
                       value: n,
                       child: Text(n, style: TextStyle(color: kText)),
                     )).toList(),
@@ -53,14 +87,16 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ),
                 ),
               ),
-              if (_selectedEx == null)
+              if (selectedEx == null)
                 Expanded(
                   child: exNames.isEmpty
                       ? EmptyState(emoji: '', title: S.get('no_data_yet'))
+                      : filteredNames.isEmpty
+                          ? EmptyState(emoji: '', title: S.get('no_exercise_found'))
                       : EmptyState(emoji: '', title: S.get('select_to_see')),
                 )
               else
-                Expanded(child: _ChartContent(exName: _selectedEx!)),
+                Expanded(child: _ChartContent(exName: selectedEx)),
             ],
           ),
         );
