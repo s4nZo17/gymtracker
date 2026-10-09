@@ -144,7 +144,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       final delta = sum.delta;
       subtitle = Text.rich(
         TextSpan(children: [
-          TextSpan(text: '${sum.sessions} ${S.get('sessions_short')}'),
+          TextSpan(text: '${sum.sessions} ${S.get(sum.sessions == 1 ? 'session_short' : 'sessions_short')}'),
           if (delta.abs() > 0.01)
             TextSpan(
               text: '  ${delta > 0 ? '+' : '−'}${fmtNum(delta.abs())} kg',
