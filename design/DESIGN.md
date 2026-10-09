@@ -1,5 +1,73 @@
 # GymTracker 2.0 — Documento di design
 
+> **Ottobre 2026 — redesign minimal.** La sezione 0 qui sotto descrive l'app
+> com'è adesso (screenshot in `img-minimal/`). Le sezioni 1–11 restano come
+> fotografia della versione precedente (agosto 2026, screenshot in `img/`).
+
+---
+
+## 0. Redesign minimal
+
+### 0.1 Le regole
+
+1. **Monocromo.** L'accento colora solo l'azione principale della schermata
+   (FAB "+ Esercizio", "+ Aggiungi serie", bottone di salvataggio) e i dati da
+   evidenziare (ultimo punto del grafico, intensità sulla mappa del corpo).
+   Tutto il resto è testo bianco/grigio su fondo neutro.
+2. **Niente card in lista.** Le liste sono righe piatte (`ListRow`) separate
+   da una linea sottile rientrata come il testo. Restano pochi blocchi tenui,
+   senza bordo, solo dove serve raggruppare (riquadro "ultima volta").
+3. **Gerarchia col testo.** Titolo di pagina 30/w700, titolo di blocco 17/w600,
+   riga 15/w500, contorno 13 in grigio. Le etichette di sezione sono in
+   minuscolo normale, non più in maiuscolo spaziato.
+4. **Badge → testo.** Recupero, voto, giorno preimpostato, muscoli, tipo di
+   serie: tutto testo, niente pillole colorate. Gli unici colori semantici
+   rimasti sono arancio (con aiuto), blu (drop), verde/rosso (progresso).
+5. **Cifre tabellari** (`kTabular`) su pesi, reps e date: le colonne restano
+   allineate.
+6. **Azioni scritte.** Le azioni rare di un esercizio (nota, recupero,
+   progressi, rinomina, elimina) stanno in un menu a foglio con le voci
+   scritte (`showActionSheet`), non in file di icone minuscole.
+7. **Agire subito, annullare dopo.** Eliminare serie, esercizi e allenamenti
+   non chiede conferma: si fa e si può annullare dalla snackbar (ora
+   invertita: chiara sul fondo scuro e viceversa).
+
+Token in `lib/theme.dart`: `kBg`, `kSurface`, `kSurface2`, `kSurface3`, `kLine`,
+`kText/2/3`, raggi 14/10/22, stili di testo nella classe `T`.
+
+### 0.2 Flussi sistemati
+
+| Prima | Ora |
+|---|---|
+| **Esercizi** e **Progressi**: due schede con la stessa lista (nome + peso massimo) verso lo stesso grafico | Una scheda **Progressi** con toggle *Esercizi / Mappa corpo*. Tocchi un esercizio → la sua scheda: grafici, sessioni recenti e, nel menu, modifica / rimuovi dalla libreria. 4 tab invece di 5 |
+| Oggi e Storico con due implementazioni diverse dello stesso esercizio (card con 4 bottoni / riga con 5 icone), due selettori esercizi, due editor di note | Un solo `ExerciseBlock`, un solo `ExercisePickerScreen` (con `session` opzionale), un solo `showNoteEditor` |
+| Storico: card che si espandeva sul posto, piena di bottoni | Elenco piatto (data, giorno, quanto hai fatto) → tocchi e apri la sessione (`SessionScreen`), che si modifica come Oggi. Nuovo: eliminare un allenamento intero, con annulla |
+| Giorni preimpostati applicabili da 4 punti; in Impostazioni "Applica" caricava gli esercizi ma ti lasciava lì | Si applicano solo da Oggi (lista nella giornata vuota, o "Carica un giorno preimpostato" in fondo). La pagina in Impostazioni serve solo a gestirli |
+| Eliminare un esercizio: conferma **e** annulla | Solo annulla |
+| "Nuovo giorno" sempre in evidenza, anche a sessione vuota | Compare solo se c'è qualcosa da chiudere; il voto si chiede lì ("Salva e chiudi") |
+| Sessione rimasta aperta da giorni prima, intestata col giorno vecchio senza spiegazioni | Avviso "Questo allenamento è di un altro giorno · Inizia oggi". Una sessione vuota prende la data di oggi appena la riempi |
+| Import: due tab con lo stesso modulo, testi fissi in italiano, "Vai allo storico" che non ci andava | Un modulo solo (il file riempie il campo di testo), tradotto, e a fine import si apre davvero lo Storico |
+| Editor esercizio con due elenchi di muscoli identici (primari / secondari) | Un elenco: un tocco primario (pieno), due secondario (bordo), tre nessuno |
+| Errore "inserisci peso e reps" in una snackbar finita dietro lo sheet | Errore scritto dentro lo sheet |
+| Mappa del corpo a semaforo (verde/giallo/rosso) | Accento a tre intensità; muscoli in elenco ordinati dal più allenato |
+
+### 0.3 Schermate
+
+| Oggi | Sheet serie | Menu esercizio | Aggiungi esercizio |
+|---|---|---|---|
+| ![](img-minimal/01-oggi.png) | ![](img-minimal/02-sheet-serie.png) | ![](img-minimal/03-menu-esercizio.png) | ![](img-minimal/04-aggiungi-esercizio.png) |
+
+| Storico | Sessione | Progressi | Scheda esercizio |
+|---|---|---|---|
+| ![](img-minimal/05-storico.png) | ![](img-minimal/06-sessione.png) | ![](img-minimal/07-progressi.png) | ![](img-minimal/08-scheda-esercizio.png) |
+
+| Mappa corpo | Impostazioni | Giorni preimpostati | Oggi, giornata nuova |
+|---|---|---|---|
+| ![](img-minimal/09-mappa-corpo.png) | ![](img-minimal/10-impostazioni.png) | ![](img-minimal/11-giorni-preimpostati.png) | ![](img-minimal/12-oggi-nuovo-giorno.png) |
+
+---
+
+
 Ricognizione completa dell'interfaccia, schermata per schermata, con screenshot presi
 dall'app in esecuzione (emulatore Android `core36`, 1080×2400, densità 420dpi, build debug
 del 4 agosto 2026, **dopo il restyling di UI e navigazione**). I dati mostrati sono un set

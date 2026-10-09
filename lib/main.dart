@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'theme.dart';
 import 'services/app_state.dart';
 import 'models/models.dart';
@@ -13,9 +12,9 @@ import 'screens/today_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/progress_screen.dart';
 import 'screens/settings_screen.dart';
-import 'screens/library_screen.dart';
 import 'widgets/custom_color_dialog.dart';
 import 'widgets/app_tour.dart';
+import 'widgets/widgets.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,7 +45,9 @@ class GymTrackerApp extends StatelessWidget {
             statusBarColor: Colors.transparent,
             statusBarIconBrightness:
                 state.prefs.themeMode == 'dark' ? Brightness.light : Brightness.dark,
-            systemNavigationBarColor: kSurface,
+            systemNavigationBarColor: kBg,
+            systemNavigationBarIconBrightness:
+                state.prefs.themeMode == 'dark' ? Brightness.light : Brightness.dark,
           ),
         );
 
@@ -77,33 +78,17 @@ class _SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: kBg,
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.fitness_center, color: kAccent, size: 40),
-              const SizedBox(height: 14),
-              Text(
-                'GYMLOG',
-                style: GoogleFonts.inter(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: kAccent,
-                  letterSpacing: 3,
-                ),
-              ),
-              const SizedBox(height: 28),
-              SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(color: kAccent, strokeWidth: 2),
-              ),
-            ],
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(color: kText3, strokeWidth: 1.6),
           ),
         ),
       );
 }
 
 // ─── SETUP WIZARD ───────────────────────────────────────────────────────────
+// Tre domande, una per pagina: una domanda grande, le risposte in elenco.
 class SetupWizard extends StatefulWidget {
   const SetupWizard({super.key});
 
@@ -119,6 +104,8 @@ class _SetupWizardState extends State<SetupWizard> {
   String _accent = 'obsidian';
   String _customAccentHex = '';
 
+  bool get _it => _lang == 'it';
+
   void _applySetupThemePreview() {
     final custom = _accent == 'custom' ? parseHexColor(_customAccentHex) : null;
     AppTheme.apply(_themeMode, _accent, customPrimary: custom);
@@ -126,97 +113,94 @@ class _SetupWizardState extends State<SetupWizard> {
 
   @override
   Widget build(BuildContext context) {
+    final titles = [
+      _it ? 'Benvenuto.\nIn che lingua?' : 'Welcome.\nWhich language?',
+      S.get('setup_date'),
+      S.get('setup_theme'),
+    ];
+
     return Scaffold(
       backgroundColor: kBg,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const Spacer(),
-              Icon(Icons.fitness_center, color: kAccent, size: 34),
-              const SizedBox(height: 10),
-              Text(
-                'GYMLOG',
-                style: GoogleFonts.inter(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w600,
-                  color: kAccent,
-                  letterSpacing: 3,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(kGapPage, 28, kGapPage, 0),
+              child: Text('GymTracker  ·  ${_page + 1}/3', style: T.label),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(kGapPage, 18, kGapPage, 28),
+              child: Text(titles[_page], style: T.display),
+            ),
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: KeyedSubtree(
+                  key: ValueKey(_page),
+                  child: [
+                    _buildLanguagePage,
+                    _buildDateFormatPage,
+                    _buildThemePage,
+                  ][_page](),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                _page == 0 ? (_lang == 'it' ? 'Benvenuto!' : 'Welcome!') : '',
-                style: TextStyle(fontSize: 17, color: kText2),
-              ),
-              const SizedBox(height: 36),
-              if (_page == 0) _buildLanguagePage(),
-              if (_page == 1) _buildDateFormatPage(),
-              if (_page == 2) _buildThemePage(),
-              const Spacer(flex: 2),
-              Row(
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(kGapPage, 8, kGapPage, 16),
+              child: Row(
                 children: [
-                  if (_page > 0)
+                  if (_page > 0) ...[
                     TextButton(
                       onPressed: () => setState(() => _page--),
-                      child: Text(
-                        _lang == 'it' ? 'Indietro' : 'Back',
-                        style: TextStyle(color: kText2),
-                      ),
+                      child: Text(_it ? 'Indietro' : 'Back',
+                          style: TextStyle(color: kText2)),
                     ),
-                  const Spacer(),
-                  SizedBox(
-                    width: 150,
+                    const SizedBox(width: 12),
+                  ],
+                  Expanded(
                     child: ElevatedButton(
                       onPressed: _next,
                       child: Text(
                         _page < 2
-                            ? (_lang == 'it' ? 'Avanti' : 'Next')
-                            : (_lang == 'it' ? 'Inizia!' : 'Start!'),
+                            ? (_it ? 'Avanti' : 'Next')
+                            : (_it ? 'Inizia' : 'Start'),
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  3,
-                  (i) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: i == _page ? 24 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: i == _page ? kAccent : kSurface3,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
+  Widget _option(String label, bool selected, VoidCallback onTap,
+      {String? detail}) {
+    return ListRow(
+      title: label,
+      subtitle: detail,
+      trailing: selected
+          ? Icon(Icons.check, color: kText, size: 22)
+          : const SizedBox(width: 22),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+    );
+  }
+
   Widget _buildLanguagePage() {
-    return Column(
+    return ListView(
       children: [
-        Text(
-          _lang == 'it' ? 'In che lingua preferisci?' : 'Preferred language?',
-          style: TextStyle(fontSize: 16, color: kText),
-        ),
-        const SizedBox(height: 20),
-        _optionCard('🇮🇹', 'Italiano', _lang == 'it', () => setState(() {
+        const Divider(indent: kGapPage, endIndent: kGapPage),
+        _option('Italiano', _lang == 'it', () => setState(() {
               _lang = 'it';
               S.setLang('it');
             })),
-        const SizedBox(height: 10),
-        _optionCard('🇬🇧', 'English', _lang == 'en', () => setState(() {
+        _option('English', _lang == 'en', () => setState(() {
               _lang = 'en';
               S.setLang('en');
             })),
@@ -225,86 +209,51 @@ class _SetupWizardState extends State<SetupWizard> {
   }
 
   Widget _buildDateFormatPage() {
-    return Column(
+    return ListView(
       children: [
-        Text(S.get('setup_date'), style: TextStyle(fontSize: 16, color: kText)),
-        const SizedBox(height: 20),
-        _optionCard('📅', 'GG-MM (22-02)', _dateFormat == 'dd-MM',
-            () => setState(() => _dateFormat = 'dd-MM')),
-        const SizedBox(height: 10),
-        _optionCard('📅', 'MM-GG (02-22)', _dateFormat == 'MM-dd',
-            () => setState(() => _dateFormat = 'MM-dd')),
+        const Divider(indent: kGapPage, endIndent: kGapPage),
+        _option(_it ? 'Giorno, mese' : 'Day, month', _dateFormat == 'dd-MM',
+            () => setState(() => _dateFormat = 'dd-MM'),
+            detail: '22-02'),
+        _option(_it ? 'Mese, giorno' : 'Month, day', _dateFormat == 'MM-dd',
+            () => setState(() => _dateFormat = 'MM-dd'),
+            detail: '02-22'),
       ],
     );
   }
 
   Widget _buildThemePage() {
-    return Column(
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: kGapPage),
       children: [
-        Text(S.get('setup_theme'), style: TextStyle(fontSize: 16, color: kText)),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-                child: _themeToggle(
-                    'dark', _lang == 'it' ? 'Scuro' : 'Dark', Icons.dark_mode)),
-            const SizedBox(width: 10),
-            Expanded(
-                child: _themeToggle(
-                    'light', _lang == 'it' ? 'Chiaro' : 'Light', Icons.light_mode)),
-          ],
+        SegmentedToggle(
+          labels: [_it ? 'Scuro' : 'Dark', _it ? 'Chiaro' : 'Light'],
+          selected: _themeMode == 'light' ? 1 : 0,
+          onChanged: (i) => setState(() {
+            _themeMode = i == 1 ? 'light' : 'dark';
+            _applySetupThemePreview();
+          }),
         ),
-        const SizedBox(height: 20),
-        Text(S.get('setup_accent'), style: TextStyle(fontSize: 14, color: kText2)),
+        const SizedBox(height: 28),
+        Text(S.get('setup_accent'), style: T.label),
         const SizedBox(height: 12),
         Wrap(
-          spacing: 10,
-          runSpacing: 10,
+          spacing: 12,
+          runSpacing: 12,
           children: [
-            ...accentPresets.map((p) => GestureDetector(
+            ...accentPresets.map((p) => AccentDot(
+                  color: p.primary,
+                  selected: _accent == p.id,
                   onTap: () => setState(() {
                     _accent = p.id;
                     _applySetupThemePreview();
                   }),
-                  child: Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      color: p.primary,
-                      borderRadius: BorderRadius.circular(16),
-                      border: _accent == p.id
-                          ? Border.all(color: Colors.white, width: 3)
-                          : null,
-                      boxShadow: _accent == p.id
-                          ? [
-                              BoxShadow(
-                                  color: p.primary.withValues(alpha: 0.4),
-                                  blurRadius: 12)
-                            ]
-                          : null,
-                    ),
-                    child: _accent == p.id
-                        ? const Icon(Icons.check, color: Colors.white, size: 26)
-                        : null,
-                  ),
                 )),
-            GestureDetector(
+            AccentDot(
+              color: parseHexColor(_customAccentHex) ?? kSurface3,
+              selected: _accent == 'custom',
+              icon: Icons.add,
               onTap: _pickCustomAccent,
-              child: Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  color: parseHexColor(_customAccentHex) ?? kAccent,
-                  borderRadius: BorderRadius.circular(16),
-                  border: _accent == 'custom'
-                      ? Border.all(color: Colors.white, width: 3)
-                      : null,
-                ),
-                child: _accent == 'custom'
-                    ? const Icon(Icons.check, color: Colors.white, size: 26)
-                    : const Icon(Icons.color_lens_outlined,
-                        color: Colors.white, size: 22),
-              ),
             ),
           ],
         ),
@@ -316,10 +265,10 @@ class _SetupWizardState extends State<SetupWizard> {
     final picked = await showCustomColorDialog(
       context: context,
       initialColor: parseHexColor(_customAccentHex) ?? kAccent,
-      title: S.lang == 'it' ? 'Colore personalizzato' : 'Custom color',
+      title: S.get('custom_color'),
       cancelText: S.get('cancel'),
-      saveText: S.lang == 'it' ? 'Salva' : 'Save',
-      invalidHexText: S.lang == 'it' ? 'Codice non valido' : 'Invalid code',
+      saveText: S.get('save'),
+      invalidHexText: S.get('invalid_code'),
     );
 
     if (picked == null || !mounted) return;
@@ -329,65 +278,6 @@ class _SetupWizardState extends State<SetupWizard> {
       _customAccentHex = colorToHexString(picked);
       _applySetupThemePreview();
     });
-  }
-
-  Widget _themeToggle(String mode, String label, IconData icon) {
-    final selected = _themeMode == mode;
-    return GestureDetector(
-      onTap: () => setState(() {
-        _themeMode = mode;
-        _applySetupThemePreview();
-      }),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: selected ? kAccent.withValues(alpha: 0.14) : kSurface,
-          border: Border.all(color: selected ? kAccent : kSurface3),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: selected ? kAccent : kText3, size: 28),
-            const SizedBox(height: 6),
-            Text(label,
-                style: TextStyle(
-                    color: selected ? kAccent : kText2,
-                    fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _optionCard(String emoji, String label, bool selected, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-        decoration: BoxDecoration(
-          color: selected ? kAccent.withValues(alpha: 0.10) : kSurface,
-          border: Border.all(color: selected ? kAccent : kSurface3),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 22)),
-            const SizedBox(width: 14),
-            Text(label,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: selected ? kAccent : kText,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                )),
-            const Spacer(),
-            if (selected) Icon(Icons.check_circle, color: kAccent, size: 22),
-          ],
-        ),
-      ),
-    );
   }
 
   void _next() {
@@ -416,7 +306,12 @@ class MainShell extends StatefulWidget {
 }
 
 class MainShellState extends State<MainShell> {
-  int _currentIndex = 0;
+  static const todayTab = 0;
+  static const historyTab = 1;
+  static const progressTab = 2;
+  static const settingsTab = 3;
+
+  int _currentIndex = todayTab;
 
   /// Attenzione: qui NON si usa `const`. Le istanze const vengono
   /// canonicalizzate e Flutter salta il rebuild del sottoalbero: cambiando
@@ -431,15 +326,17 @@ class MainShellState extends State<MainShell> {
   // "Annulla" e "+ Esercizio" nello stesso punto, e se la snackbar spariva un
   // attimo prima del tocco si apriva il selettore esercizi invece di annullare.
   // Attaccandola allo Scaffold della singola scheda, Flutter alza il FAB da solo.
+  //
+  // Quattro schede, non piu' cinque: "Esercizi" e "Progressi" mostravano la
+  // stessa lista. Ora la libreria vive dentro Progressi.
   List<Widget> get _pages => [
         ScaffoldMessenger(child: TodayScreen()),
-        ScaffoldMessenger(child: LibraryScreen()),
         ScaffoldMessenger(child: HistoryScreen()),
         ScaffoldMessenger(child: ProgressScreen()),
         ScaffoldMessenger(child: SettingsScreen()),
       ];
 
-  void _select(int index) {
+  void selectTab(int index) {
     if (index == _currentIndex) return;
     HapticFeedback.selectionClick();
     setState(() => _currentIndex = index);
@@ -465,7 +362,7 @@ class MainShellState extends State<MainShell> {
 
   /// Riavvia il tour (usato da Impostazioni → "Rivedi il tour").
   void startTour() {
-    setState(() => _currentIndex = 0);
+    setState(() => _currentIndex = todayTab);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       AppTour.start(context);
@@ -476,29 +373,38 @@ class MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, _, __) => Scaffold(
-        body: IndexedStack(index: _currentIndex, children: _pages),
+        backgroundColor: kBg,
+        body: Stack(
+          children: [
+            IndexedStack(index: _currentIndex, children: _pages),
+            // Fascia sotto la status bar: scorrendo, le liste passavano sotto
+            // orologio e icone di sistema senza alcuna separazione.
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: MediaQuery.of(context).padding.top,
+              child: IgnorePointer(child: ColoredBox(color: kBg)),
+            ),
+          ],
+        ),
         bottomNavigationBar: Container(
           key: TourKeys.bottomNav,
           decoration: BoxDecoration(
-            color: kSurface,
-            border: Border(top: BorderSide(color: kSurface3.withValues(alpha: 0.6))),
+            color: kBg,
+            border: Border(top: BorderSide(color: kLine)),
           ),
           child: SafeArea(
             top: false,
             child: SizedBox(
-              height: 62,
+              height: 58,
               child: Row(
                 children: [
-                  _navItem(0, Icons.fitness_center_outlined, Icons.fitness_center,
-                      S.get('today')),
-                  _navItem(1, Icons.menu_book_outlined, Icons.menu_book,
-                      S.get('exercises')),
-                  _navItem(
-                      2, Icons.history_outlined, Icons.history, S.get('history')),
-                  _navItem(3, Icons.trending_up_outlined, Icons.trending_up,
-                      S.get('progress')),
-                  _navItem(4, Icons.settings_outlined, Icons.settings,
-                      S.get('settings')),
+                  _navItem(todayTab, Icons.fitness_center, S.get('today')),
+                  _navItem(historyTab, Icons.calendar_today_outlined,
+                      S.get('history')),
+                  _navItem(progressTab, Icons.show_chart, S.get('progress')),
+                  _navItem(settingsTab, Icons.tune, S.get('settings')),
                 ],
               ),
             ),
@@ -508,36 +414,27 @@ class MainShellState extends State<MainShell> {
     );
   }
 
-  Widget _navItem(int index, IconData icon, IconData activeIcon, String label) {
+  /// Voce della barra: monocroma. Quella attiva e' a pieno contrasto, le
+  /// altre spente; niente pillole colorate.
+  Widget _navItem(int index, IconData icon, String label) {
     final selected = _currentIndex == index;
+    final color = selected ? kText : kText3;
     return Expanded(
-      child: InkWell(
-        onTap: () => _select(index),
+      child: InkResponse(
+        onTap: () => selectTab(index),
+        highlightShape: BoxShape.rectangle,
+        containedInkWell: true,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
-              decoration: BoxDecoration(
-                color: selected
-                    ? kAccent.withValues(alpha: 0.14)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                selected ? activeIcon : icon,
-                color: selected ? kAccent : kText3,
-                size: 23,
-              ),
-            ),
-            const SizedBox(height: 3),
+            Icon(icon, color: color, size: 22),
+            const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                fontSize: 10,
-                color: selected ? kAccent : kText3,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                fontSize: 11,
+                color: color,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
           ],

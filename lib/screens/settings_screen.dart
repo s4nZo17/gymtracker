@@ -1,4 +1,8 @@
 // lib/screens/settings_screen.dart
+//
+// Impostazioni: un elenco di righe raggruppate (Aspetto, Allenamento, Dati),
+// senza card e senza icone decorative. Ogni riga dice cosa fa; il valore
+// corrente sta a destra.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,13 +10,13 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/strings.dart';
+import '../main.dart';
 import '../services/app_state.dart';
 import '../theme.dart';
-import '../widgets/widgets.dart';
 import '../widgets/custom_color_dialog.dart';
+import '../widgets/widgets.dart';
 import 'import_screen.dart';
 import 'templates_screen.dart';
-import '../main.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -20,317 +24,175 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
-      builder: (context, state, _) => Scaffold(
-        backgroundColor: kBg,
-        body: ListView(
-          padding: const EdgeInsets.only(bottom: kBottomSafeSpace),
-          children: [
-            PageHeader(title: S.get('settings')),
-            const SizedBox(height: 4),
-            _pad(_sectionCard(
-              icon: Icons.palette_outlined,
-              iconColor: kAccent,
-              title: S.get('appearance'),
-              children: [
-                _settingRow(
-                  label: S.get('language'),
-                  child: _segmentedControl(
-                    options: const {'it': 'IT', 'en': 'EN'},
-                    selected: state.prefs.language,
-                    onChanged: state.setLanguage,
-                  ),
+      builder: (context, state, _) {
+        final workouts =
+            state.workouts.where((w) => w.exercises.isNotEmpty).length;
+        final series = state.workouts.fold(0, (acc, w) => acc + w.totalSeries);
+
+        return Scaffold(
+          backgroundColor: kBg,
+          body: ListView(
+            padding: const EdgeInsets.only(bottom: kBottomSafeSpace),
+            children: [
+              PageHeader(title: S.get('settings')),
+
+              // ─── Aspetto ───────────────────────────────────────────────
+              SectionTitle(S.get('appearance')),
+              _toggleRow(
+                S.get('language'),
+                SegmentedToggle(
+                  compact: true,
+                  labels: const ['IT', 'EN'],
+                  selected: state.prefs.language == 'en' ? 1 : 0,
+                  onChanged: (i) => state.setLanguage(i == 1 ? 'en' : 'it'),
                 ),
-                Divider(color: kSurface3.withValues(alpha: 0.5), height: 1),
-                _settingRow(
-                  label: S.get('theme'),
-                  child: _segmentedControl(
-                    options: {'dark': S.get('dark'), 'light': S.get('light')},
-                    selected: state.prefs.themeMode,
-                    onChanged: state.setThemeMode,
-                  ),
+              ),
+              _toggleRow(
+                S.get('theme'),
+                SegmentedToggle(
+                  compact: true,
+                  labels: [S.get('dark'), S.get('light')],
+                  selected: state.prefs.themeMode == 'light' ? 1 : 0,
+                  onChanged: (i) =>
+                      state.setThemeMode(i == 1 ? 'light' : 'dark'),
                 ),
-                Divider(color: kSurface3.withValues(alpha: 0.5), height: 1),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        S.get('accent_color'),
-                        style: TextStyle(fontSize: 13, color: kText2),
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        children: [
-                          ...accentPresets.map((p) {
-                            final selected = state.prefs.accentPreset == p.id;
-                            return _accentChip(
-                              label: S.lang == 'it' ? p.nameIt : p.nameEn,
+              ),
+              _toggleRow(
+                S.get('date_format'),
+                SegmentedToggle(
+                  compact: true,
+                  labels: const ['GG-MM', 'MM-GG'],
+                  selected: state.prefs.dateFormat == 'MM-dd' ? 1 : 0,
+                  onChanged: (i) =>
+                      state.setDateFormat(i == 1 ? 'MM-dd' : 'dd-MM'),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(kGapPage, 14, kGapPage, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(S.get('accent_color'), style: T.body),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        ...accentPresets.map((p) => AccentDot(
                               color: p.primary,
-                              selected: selected,
+                              selected: state.prefs.accentPreset == p.id,
+                              tooltip: S.lang == 'it' ? p.nameIt : p.nameEn,
                               onTap: () => state.setAccentPreset(p.id),
-                            );
-                          }),
-                          _accentChip(
-                            label: 'Custom',
-                            color: state.customAccentColor ?? kAccent,
-                            selected: state.prefs.accentPreset == 'custom',
-                            icon: Icons.color_lens_outlined,
-                            onTap: () => _openCustomColorDialog(context, state),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Divider(color: kSurface3.withValues(alpha: 0.5), height: 1),
-                _settingRow(
-                  label: S.get('date_format'),
-                  child: _segmentedControl(
-                    options: const {'dd-MM': 'GG-MM', 'MM-dd': 'MM-GG'},
-                    selected: state.prefs.dateFormat,
-                    onChanged: state.setDateFormat,
-                  ),
-                ),
-              ],
-            )),
-            const SizedBox(height: 18),
-
-            _group(S.get('training')),
-            // Giorni preimpostati + import: card azione in evidenza
-            _pad(_actionCard(
-              context,
-              icon: Icons.flash_on,
-              title: S.get('templates'),
-              subtitle: S.get('templates_desc'),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const TemplatesScreen()),
-              ),
-            )),
-            const SizedBox(height: 10),
-            _pad(_actionCard(
-              context,
-              icon: Icons.upload_outlined,
-              title: S.get('import_blocknotes'),
-              subtitle: S.get('import_desc'),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ImportScreen()),
-              ),
-            )),
-            const SizedBox(height: 10),
-            _pad(_actionCard(
-              context,
-              icon: Icons.tour_outlined,
-              title: S.get('tour_replay'),
-              subtitle: S.lang == 'it'
-                  ? 'Il giro guidato dell\'app, in 4 passi'
-                  : 'The guided app walkthrough, in 4 steps',
-              onTap: () => context
-                  .findAncestorStateOfType<MainShellState>()
-                  ?.startTour(),
-            )),
-            const SizedBox(height: 18),
-
-            _group(S.get('data_section')),
-            _pad(const _BackupCard()),
-            const SizedBox(height: 14),
-
-            _pad(_sectionCard(
-              icon: Icons.bar_chart,
-              iconColor: kAccent,
-              title: S.get('statistics'),
-              children: [
-                _statRow(S.get('total_workouts'),
-                    '${state.workouts.where((w) => w.exercises.isNotEmpty).length}'),
-                _statRow(S.get('exercises_in_lib'), '${state.library.length}'),
-                _statRow(S.get('total_series_stat'),
-                    '${state.workouts.fold(0, (acc, w) => acc + w.totalSeries)}'),
-              ],
-            )),
-            const SizedBox(height: 14),
-
-            _pad(_sectionCard(
-              icon: Icons.folder_outlined,
-              iconColor: kAccent,
-              title: S.get('data_folder'),
-              children: [
-                Text(S.get('data_saved_in'),
-                    style: TextStyle(fontSize: 13, color: kText2)),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: kSurface2,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          state.storageBasePath.isNotEmpty
-                              ? state.storageBasePath
-                              : S.get('loading'),
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: kText2,
-                              fontFamily: 'monospace'),
+                            )),
+                        AccentDot(
+                          color: state.customAccentColor ?? kSurface3,
+                          selected: state.prefs.accentPreset == 'custom',
+                          tooltip: S.get('custom_color'),
+                          icon: Icons.add,
+                          onTap: () => _openCustomColorDialog(context, state),
                         ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          Clipboard.setData(
-                              ClipboardData(text: state.storageBasePath));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(S.get('path_copied'))),
-                          );
-                        },
-                        icon: Icon(Icons.copy, size: 16, color: kText3),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(S.get('data_files_info'),
-                    style:
-                        TextStyle(fontSize: 12, color: kText3, height: 1.6)),
-              ],
-            )),
-            const SizedBox(height: 14),
-
-            _pad(_sectionCard(
-              icon: Icons.warning_amber_outlined,
-              iconColor: kRed,
-              title: S.get('danger_zone'),
-              children: [
-                Material(
-                  color: kRed.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () => _confirmReset(context, state),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      alignment: Alignment.center,
-                      child: Text(
-                        S.get('delete_all'),
-                        style: const TextStyle(
-                            color: kRed, fontWeight: FontWeight.w600),
-                      ),
+                      ],
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            )),
-            const SizedBox(height: 30),
-            Center(
-              // Deve combaciare con pubspec.yaml (2.0.0) e col titolo in main.dart.
-              child: Text('GymTracker 2.0',
-                  style: TextStyle(fontSize: 12, color: kText3)),
-            ),
-            const SizedBox(height: 10),
-          ],
-        ),
-      ),
+              ),
+              const Divider(indent: kGapPage, endIndent: kGapPage),
+
+              // ─── Allenamento ──────────────────────────────────────────
+              SectionTitle(S.get('training')),
+              ListRow(
+                title: S.get('templates'),
+                subtitle: state.templates.isEmpty
+                    ? S.get('templates_desc')
+                    : '${state.templates.length} · ${state.templates.map((t) => t.name).join(', ')}',
+                trailing: RowChevron(),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TemplatesScreen()),
+                ),
+              ),
+              ListRow(
+                title: S.get('import_blocknotes'),
+                subtitle: S.get('import_desc'),
+                trailing: RowChevron(),
+                onTap: () async {
+                  final shell = context.findAncestorStateOfType<MainShellState>();
+                  final imported = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ImportScreen()),
+                  );
+                  // Import fatto: si va dove sono finiti i dati.
+                  if (imported == true) {
+                    shell?.selectTab(MainShellState.historyTab);
+                    if (context.mounted) {
+                      showAppSnack(context, S.get('import_done'));
+                    }
+                  }
+                },
+              ),
+              ListRow(
+                title: S.get('tour_replay'),
+                trailing: RowChevron(),
+                divider: false,
+                onTap: () => context
+                    .findAncestorStateOfType<MainShellState>()
+                    ?.startTour(),
+              ),
+              const Divider(indent: kGapPage, endIndent: kGapPage),
+
+              // ─── Dati ─────────────────────────────────────────────────
+              SectionTitle(S.get('data_section')),
+              // Non const: deve ricostruirsi quando cambia il tema.
+              // ignore: prefer_const_constructors
+              _BackupRows(),
+              ListRow(
+                title: S.get('data_folder'),
+                subtitleWidget: Text(
+                  state.storageBasePath.isNotEmpty
+                      ? state.storageBasePath
+                      : S.get('loading'),
+                  style: T.meta.copyWith(fontSize: 12, fontFamily: 'monospace'),
+                ),
+                trailing: Icon(Icons.copy_outlined, size: 18, color: kText3),
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: state.storageBasePath));
+                  showAppSnack(context, S.get('path_copied'));
+                },
+              ),
+              ListRow(
+                title: S.get('delete_all'),
+                titleColor: kRed,
+                divider: false,
+                onTap: () => _confirmReset(context, state),
+              ),
+
+              const SizedBox(height: 28),
+              Center(
+                child: Text(
+                  '$workouts ${S.get('workouts_count')} · $series ${S.get('series')} · ${state.library.length} ${S.get('exercises_count')}',
+                  style: T.label.copyWith(fontSize: 12),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Center(
+                // Deve combaciare con pubspec.yaml (2.0.0) e col titolo in main.dart.
+                child: Text('GymTracker 2.0',
+                    style: T.label.copyWith(fontSize: 12)),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  /// Margine laterale di pagina: la ListView ora e' a tutta larghezza per
-  /// far arrivare header e titoli di gruppo fino ai bordi.
-  Widget _pad(Widget child) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: kGapPage),
-        child: child,
-      );
-
-  Widget _group(String title) => Padding(
-        padding: const EdgeInsets.only(top: 4, bottom: 2),
-        child: SectionTitle(title),
-      );
-
-  Widget _actionCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return AppCard(
-      onTap: onTap,
-      borderColor: kAccent.withValues(alpha: 0.3),
+  Widget _toggleRow(String label, Widget control) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(kGapPage, 8, kGapPage, 8),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: kAccent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: kAccent, size: 21),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 15, color: kText),
-                ),
-                Text(subtitle, style: TextStyle(fontSize: 12, color: kText2)),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right, color: kText3),
-        ],
-      ),
-    );
-  }
-
-  Widget _accentChip({
-    required String label,
-    required Color color,
-    required bool selected,
-    required VoidCallback onTap,
-    IconData? icon,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(13),
-              border: selected ? Border.all(color: kText, width: 2.5) : null,
-              boxShadow: selected
-                  ? [
-                      BoxShadow(
-                          color: color.withValues(alpha: 0.4), blurRadius: 8)
-                    ]
-                  : null,
-            ),
-            child: selected
-                ? const Icon(Icons.check, color: Colors.white, size: 20)
-                : (icon != null
-                    ? Icon(icon, color: Colors.white, size: 18)
-                    : null),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style:
-                TextStyle(fontSize: 10, color: selected ? kText : kText3),
-          ),
+          Expanded(child: Text(label, style: T.body)),
+          control,
         ],
       ),
     );
@@ -341,118 +203,15 @@ class SettingsScreen extends StatelessWidget {
     final picked = await showCustomColorDialog(
       context: context,
       initialColor: state.customAccentColor ?? kAccent,
-      title: S.lang == 'it' ? 'Colore personalizzato' : 'Custom color',
+      title: S.get('custom_color'),
       cancelText: S.get('cancel'),
-      saveText: S.lang == 'it' ? 'Salva' : 'Save',
-      invalidHexText: S.lang == 'it' ? 'Codice non valido' : 'Invalid code',
+      saveText: S.get('save'),
+      invalidHexText: S.get('invalid_code'),
     );
 
     if (picked != null) {
       state.setCustomAccentColor(picked);
     }
-  }
-
-  Widget _sectionCard({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required List<Widget> children,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: kSurface,
-        borderRadius: BorderRadius.circular(kRadiusCard),
-        border: Border.all(color: kSurface3.withValues(alpha: 0.6)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: iconColor, size: 20),
-              const SizedBox(width: 8),
-              Text(title,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 15, color: kText)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  Widget _settingRow({required String label, required Widget child}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Text(label, style: TextStyle(fontSize: 13.5, color: kText2)),
-          const Spacer(),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _segmentedControl({
-    required Map<String, String> options,
-    required String selected,
-    required ValueChanged<String> onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: kSurface2,
-        borderRadius: BorderRadius.circular(11),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: options.entries.map((e) {
-          final isSelected = e.key == selected;
-          return GestureDetector(
-            onTap: () => onChanged(e.key),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected ? kAccent : Colors.transparent,
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: Text(
-                e.value,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  color: isSelected ? Colors.white : kText3,
-                  fontWeight:
-                      isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _statRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Text(label, style: TextStyle(fontSize: 13, color: kText2)),
-          const Spacer(),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                  color: kAccent)),
-        ],
-      ),
-    );
   }
 
   void _confirmReset(BuildContext context, AppState state) async {
@@ -467,15 +226,63 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-// ─── BACKUP CARD ────────────────────────────────────────────────────────────
-class _BackupCard extends StatefulWidget {
-  const _BackupCard();
+/// Pallino colore: pieno, con un anello quando e' scelto.
+class AccentDot extends StatelessWidget {
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+  final String? tooltip;
+  final IconData? icon;
+
+  const AccentDot({
+    super.key,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+    this.tooltip,
+    this.icon,
+  });
 
   @override
-  State<_BackupCard> createState() => _BackupCardState();
+  Widget build(BuildContext context) {
+    final dot = GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 38,
+        height: 38,
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: selected ? kText : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Container(
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          child: icon != null && !selected
+              ? Icon(icon, size: 16, color: Colors.white)
+              : null,
+        ),
+      ),
+    );
+    return tooltip == null ? dot : Tooltip(message: tooltip!, child: dot);
+  }
 }
 
-class _BackupCardState extends State<_BackupCard> {
+// ─── BACKUP ─────────────────────────────────────────────────────────────────
+class _BackupRows extends StatefulWidget {
+  const _BackupRows();
+
+  @override
+  State<_BackupRows> createState() => _BackupRowsState();
+}
+
+class _BackupRowsState extends State<_BackupRows> {
   DateTime? _lastBackup;
   int _count = 0;
   bool _busy = false;
@@ -500,156 +307,50 @@ class _BackupCardState extends State<_BackupCard> {
   Future<void> _backupNow() async {
     if (_busy) return;
     setState(() => _busy = true);
-    final state = context.read<AppState>();
-    final path = await state.createManualBackup();
+    final path = await context.read<AppState>().createManualBackup();
     await _refresh();
     if (!mounted) return;
     setState(() => _busy = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content:
-              Text(path != null ? S.get('backup_done') : S.get('backup_none'))),
-    );
+    showAppSnack(
+        context, path != null ? S.get('backup_done') : S.get('backup_none'));
   }
 
   Future<void> _export() async {
     if (_busy) return;
     setState(() => _busy = true);
-    final state = context.read<AppState>();
-    final ok = await state.exportBackup();
+    final ok = await context.read<AppState>().exportBackup();
     if (!mounted) return;
     setState(() => _busy = false);
-    if (!ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.get('backup_none'))),
-      );
-    }
+    if (!ok) showAppSnack(context, S.get('backup_none'));
   }
 
   String _lastLabel() {
     if (_lastBackup == null) return S.get('backup_none');
     final locale = S.lang == 'en' ? 'en_US' : 'it_IT';
     final when = DateFormat('d MMM, HH:mm', locale).format(_lastBackup!);
-    return '${S.get('backup_last')}: $when  ·  $_count ${S.get('backup_count')}';
+    return '${S.get('backup_last')}: $when · $_count ${S.get('backup_count')}';
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: kSurface,
-        borderRadius: BorderRadius.circular(kRadiusCard),
-        border: Border.all(color: kSurface3.withValues(alpha: 0.6)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.backup_outlined, color: kAccent, size: 20),
-              const SizedBox(width: 8),
-              Text(S.get('backup'),
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 15, color: kText)),
-            ],
+    return Column(
+      children: [
+        ListRow(
+          title: S.get('backup'),
+          subtitle: '${_lastLabel()}\n${S.get('backup_desc')}',
+          trailing: TextButton(
+            onPressed: _busy ? null : _backupNow,
+            style: TextButton.styleFrom(foregroundColor: kAccent),
+            child: Text(S.get('backup_now_short')),
           ),
-          const SizedBox(height: 10),
-          Text(S.get('backup_desc'),
-              style: TextStyle(fontSize: 12, color: kText2, height: 1.5)),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: kSurface2,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.history, size: 14, color: kText3),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    _lastLabel(),
-                    style: TextStyle(fontSize: 12, color: kText2),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Material(
-                  color: kAccent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: _busy ? null : _backupNow,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      alignment: Alignment.center,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.save_outlined, size: 16, color: kAccent),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              S.get('backup_now'),
-                              style: TextStyle(
-                                  color: kAccent,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Material(
-                  color: kSurface2,
-                  borderRadius: BorderRadius.circular(12),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: _busy ? null : _export,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      alignment: Alignment.center,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.ios_share, size: 16, color: kText2),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              S.get('backup_export'),
-                              style: TextStyle(
-                                  color: kText2,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(S.get('backup_export_hint'),
-              style: TextStyle(fontSize: 11, color: kText3, height: 1.5)),
-        ],
-      ),
+        ),
+        ListRow(
+          title: S.get('backup_export'),
+          subtitle: S.get('backup_export_hint'),
+          trailing: Icon(Icons.ios_share, size: 18, color: kText3),
+          onTap: _busy ? null : _export,
+        ),
+      ],
     );
   }
 }

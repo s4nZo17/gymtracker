@@ -163,82 +163,58 @@ class _TourOverlayState extends State<_TourOverlay> {
 
   Widget _bubble(TourStep step, bool isLast) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.fromLTRB(18, 16, 10, 8),
       decoration: BoxDecoration(
         color: kSurface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: kAccent.withValues(alpha: 0.4)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(kRadiusSheet - 4),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: kAccent.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '${_index + 1}/${widget.steps.length}',
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: kAccent,
-                      fontWeight: FontWeight.w700),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  step.title,
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: kText,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
           Text(
-            step.text,
-            style: TextStyle(fontSize: 13.5, color: kText2, height: 1.45),
+            '${_index + 1} / ${widget.steps.length}',
+            style: TextStyle(
+                fontSize: 12, color: kText3, fontWeight: FontWeight.w500),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Text(
+              step.title,
+              style: GoogleFonts.inter(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: kText,
+                letterSpacing: -0.3,
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Text(
+              step.text,
+              style: TextStyle(fontSize: 14, color: kText2, height: 1.45),
+            ),
+          ),
+          const SizedBox(height: 6),
           Row(
             children: [
-              TextButton(
-                onPressed: widget.onFinish,
-                child: Text(S.get('skip'),
-                    style: TextStyle(color: kText3, fontSize: 13)),
-              ),
-              const Spacer(),
-              FilledButton(
-                onPressed: _next,
-                style: FilledButton.styleFrom(
-                  backgroundColor: kAccent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+              if (!isLast)
+                TextButton(
+                  onPressed: widget.onFinish,
+                  child: Text(S.get('skip'),
+                      style: TextStyle(color: kText3, fontSize: 14)),
                 ),
+              const Spacer(),
+              TextButton(
+                onPressed: _next,
+                style: TextButton.styleFrom(foregroundColor: kAccent),
                 child: Text(
                   isLast ? S.get('tour_done') : S.get('next'),
                   style: const TextStyle(
-                      fontSize: 13.5, fontWeight: FontWeight.w600),
+                      fontSize: 14.5, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -263,16 +239,7 @@ class _SpotlightPainter extends CustomPainter {
 
     canvas.drawPath(
       path,
-      Paint()..color = Colors.black.withValues(alpha: 0.72),
-    );
-
-    // bordo luminoso attorno al buco
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(hole, const Radius.circular(16)),
-      Paint()
-        ..color = kAccent
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
+      Paint()..color = Colors.black.withValues(alpha: 0.74),
     );
   }
 

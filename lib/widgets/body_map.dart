@@ -4,17 +4,19 @@ import 'package:flutter/material.dart';
 import '../models/muscle_groups.dart';
 import '../theme.dart';
 
-/// Returns color for a stimulation level.
+/// Colore di un livello di stimolo: l'accento a tre intensita'. Un solo
+/// colore che si scurisce/schiarisce si legge piu' in fretta del semaforo
+/// verde/giallo/rosso, e non suggerisce che "rosso" sia un errore.
 Color stimulationColor(StimulationLevel level) {
   switch (level) {
     case StimulationLevel.none:
       return kSurface3;
     case StimulationLevel.low:
-      return const Color(0xFF4ADE80); // green
+      return kAccent.withValues(alpha: 0.35);
     case StimulationLevel.medium:
-      return const Color(0xFFFBBF24); // yellow/amber
+      return kAccent.withValues(alpha: 0.65);
     case StimulationLevel.high:
-      return const Color(0xFFEF4444); // red
+      return kAccent;
   }
 }
 
@@ -40,7 +42,7 @@ class BodyMapView extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
               label!,
-              style: TextStyle(fontSize: 11, color: kText3, letterSpacing: 1, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 12, color: kText3, fontWeight: FontWeight.w500),
             ),
           ),
         Expanded(
@@ -264,9 +266,11 @@ class _BodyMapPainter extends CustomPainter {
   Paint _musclePaint(String muscleId) {
     final sets = stimulationData[muscleId] ?? 0;
     final level = stimulationFromSets(sets);
+    final color = stimulationColor(level);
     return Paint()
-      ..color = stimulationColor(level)
-          .withValues(alpha: level == StimulationLevel.none ? 0.55 : 0.85)
+      ..color = level == StimulationLevel.none
+          ? color.withValues(alpha: 0.55)
+          : color
       ..style = PaintingStyle.fill;
   }
 

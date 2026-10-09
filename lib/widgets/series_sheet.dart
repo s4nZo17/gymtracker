@@ -13,7 +13,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../models/models.dart';
 import '../theme.dart';
 import '../l10n/strings.dart';
@@ -84,6 +83,7 @@ class _SeriesSheetState extends State<SeriesSheet> {
   late TextEditingController _weightCtrl;
   late TextEditingController _repsCtrl;
   SeriesType _type = SeriesType.normal;
+  bool _missingValues = false;
 
   final List<_DropControllers> _dropCtrls = [];
 
@@ -209,9 +209,9 @@ class _SeriesSheetState extends State<SeriesSheet> {
     final w = double.tryParse(_weightCtrl.text.replaceAll(',', '.'));
     final r = _repsCtrl.text.trim();
     if (w == null || r.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.get('insert_weight_reps')), backgroundColor: kRed),
-      );
+      // L'errore sta nello sheet: una snackbar finirebbe dietro, invisibile.
+      setState(() => _missingValues = true);
+      HapticFeedback.heavyImpact();
       return;
     }
 
@@ -244,26 +244,7 @@ class _SeriesSheetState extends State<SeriesSheet> {
     });
   }
 
-  Widget _stepBtn(String label, VoidCallback onTap) {
-    return Material(
-      color: kSurface2,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          width: 46,
-          height: 46,
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: kText2),
-          ),
-        ),
-      ),
-    );
-  }
-
+  /// Campo numerico grande fra due stepper: il numero e' il protagonista.
   Widget _fieldWithSteppers({
     required TextEditingController controller,
     required String label,
@@ -276,53 +257,29 @@ class _SeriesSheetState extends State<SeriesSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label.toUpperCase(),
-          style: TextStyle(
-            fontSize: 10.5,
-            letterSpacing: 1.4,
-            color: kText3,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        Text(label, style: T.label),
         const SizedBox(height: 6),
         Row(
           children: [
-            _stepBtn(minusLabel, onMinus),
-            const SizedBox(width: 8),
+            StepButton(label: minusLabel, onTap: onMinus, size: 52),
             Expanded(
               child: TextField(
                 controller: controller,
                 keyboardType: keyboardType ??
                     const TextInputType.numberWithOptions(decimal: true),
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  color: kText,
+                style: T.number.copyWith(fontSize: 30),
+                decoration: const InputDecoration(
+                  filled: false,
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: 8),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            _stepBtn(plusLabel, onPlus),
+            StepButton(label: plusLabel, onTap: onPlus, size: 52),
           ],
         ),
       ],
-    );
-  }
-
-  Widget _sectionLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        text.toUpperCase(),
-        style: TextStyle(
-          fontSize: 10.5,
-          letterSpacing: 1.4,
-          color: kText3,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
     );
   }
 
@@ -347,30 +304,26 @@ class _SeriesSheetState extends State<SeriesSheet> {
     final fallbackHits = _fallbackHits;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      padding: const EdgeInsets.fromLTRB(kGapPage, 0, kGapPage, 8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 14),
-          Text(
-            widget.exerciseName,
-            style: GoogleFonts.inter(
-              fontSize: 19,
-              fontWeight: FontWeight.w600,
-              color: kText,
-              letterSpacing: -0.2,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            '${S.get('series_n')} ${widget.seriesNumber}',
-            style: TextStyle(fontSize: 13, color: kText2),
+          const SizedBox(height: 16),
+          Text.rich(
+            TextSpan(children: [
+              TextSpan(text: widget.exerciseName),
+              TextSpan(
+                text: '   ${S.get('series_n')} ${widget.seriesNumber}',
+                style: T.meta.copyWith(fontSize: 14, color: kText3),
+              ),
+            ]),
+            style: T.title.copyWith(fontSize: 19),
           ),
           const SizedBox(height: 14),
 
           // Riga principale: l'ultima volta nello STESSO giorno preimpostato.
-          // Senza contesto resta solo il record (globale) con la sua card.
+          // Senza contesto resta solo il record (globale).
           if (sameDay != null)
             LastSessionCard(
               date:
@@ -390,29 +343,17 @@ class _SeriesSheetState extends State<SeriesSheet> {
               onUseBestSeries: _fillFromBest,
             ),
 
-          // In un giorno preimpostato senza precedenti va detto perche' i
-          // numeri qui sotto arrivano da un'altra giornata.
-          if (inPresetDay && sameDay == null && fallbackHits.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, size: 14, color: kText3),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      S.get('first_time_in_day'),
-                      style: TextStyle(fontSize: 12, color: kText3),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
           if (fallbackHits.isNotEmpty) ...[
-            _sectionLabel(sameDay != null
-                ? S.get('last_other_day')
-                : S.get('last_occurrences')),
+            Text(
+              // In un giorno preimpostato senza precedenti va detto perche'
+              // i numeri qui sotto arrivano da un'altra giornata.
+              inPresetDay && sameDay == null
+                  ? S.get('first_time_in_day')
+                  : (sameDay != null
+                      ? S.get('last_other_day')
+                      : S.get('last_occurrences')),
+              style: T.label.copyWith(fontSize: 12.5),
+            ),
             ...fallbackHits.map(
               (hit) => HistoryHitRow(
                 dayName: hit.dayName,
@@ -422,7 +363,7 @@ class _SeriesSheetState extends State<SeriesSheet> {
                 onUse: () => _fillFromHit(hit),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 14),
           ],
 
           // Peso con stepper -/+ 2.5 kg
@@ -431,10 +372,10 @@ class _SeriesSheetState extends State<SeriesSheet> {
             label: S.get('weight_kg'),
             onMinus: () => _stepWeight(-2.5),
             onPlus: () => _stepWeight(2.5),
-            minusLabel: '-2.5',
+            minusLabel: '−2.5',
             plusLabel: '+2.5',
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
           // Reps con stepper -/+ 1 (il campo resta testo: accetta "ced" ecc.)
           _fieldWithSteppers(
@@ -442,29 +383,35 @@ class _SeriesSheetState extends State<SeriesSheet> {
             label: S.get('reps'),
             onMinus: () => _stepReps(-1),
             onPlus: () => _stepReps(1),
-            minusLabel: '-1',
+            minusLabel: '−1',
             plusLabel: '+1',
             keyboardType: TextInputType.text,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
-          Text(
-            S.get('series_type'),
-            style: TextStyle(
-              fontSize: 10.5,
-              letterSpacing: 1.4,
-              color: kText3,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
+          // Tipo serie: tre pastiglie. Il colore compare solo se scegli un
+          // tipo speciale, ed e' lo stesso del segno che vedrai nella lista.
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              Expanded(child: _typeBtn(SeriesType.normal, S.get('normal'))),
-              const SizedBox(width: 8),
-              Expanded(child: _typeBtn(SeriesType.help, S.get('with_help'))),
-              const SizedBox(width: 8),
-              Expanded(child: _typeBtn(SeriesType.drop, S.get('drop_set'))),
+              Pill(
+                label: S.get('normal'),
+                selected: _type == SeriesType.normal,
+                onTap: () => _setType(SeriesType.normal),
+              ),
+              Pill(
+                label: S.get('with_help'),
+                selected: _type == SeriesType.help,
+                color: kOrange,
+                onTap: () => _setType(SeriesType.help),
+              ),
+              Pill(
+                label: S.get('drop_set'),
+                selected: _type == SeriesType.drop,
+                color: kBlue,
+                onTap: () => _setType(SeriesType.drop),
+              ),
             ],
           ),
 
@@ -474,35 +421,30 @@ class _SeriesSheetState extends State<SeriesSheet> {
               final idx = entry.key;
               final dc = entry.value;
               return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   children: [
-                    Container(
+                    SizedBox(
                       width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: kBlue.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      alignment: Alignment.center,
                       child: Text(
                         'D${idx + 1}',
                         style: const TextStyle(
-                            fontSize: 11, color: kBlue, fontWeight: FontWeight.w700),
+                            fontSize: 13,
+                            color: kBlue,
+                            fontWeight: FontWeight.w600),
                       ),
                     ),
-                    const SizedBox(width: 8),
                     Expanded(
                       child: TextField(
                         controller: dc.weight,
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
                         decoration: InputDecoration(
-                          labelText: S.get('drop_weight'),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 10),
+                          hintText: S.get('drop_weight'),
+                          isDense: true,
                         ),
-                        style: TextStyle(fontSize: 15, color: kText),
+                        style: TextStyle(
+                            fontSize: 16, color: kText, fontFeatures: kTabular),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -510,14 +452,13 @@ class _SeriesSheetState extends State<SeriesSheet> {
                       child: TextField(
                         controller: dc.reps,
                         decoration: InputDecoration(
-                          labelText: S.get('drop_reps'),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 10),
+                          hintText: S.get('drop_reps'),
+                          isDense: true,
                         ),
-                        style: TextStyle(fontSize: 15, color: kText),
+                        style: TextStyle(
+                            fontSize: 16, color: kText, fontFeatures: kTabular),
                       ),
                     ),
-                    const SizedBox(width: 4),
                     IconButton(
                       onPressed: () => _removeDropField(idx),
                       icon: Icon(Icons.close, size: 18, color: kText3),
@@ -527,19 +468,24 @@ class _SeriesSheetState extends State<SeriesSheet> {
                 ),
               );
             }),
-            OutlinedButton.icon(
+            TextButton.icon(
               onPressed: _addDropField,
-              style: OutlinedButton.styleFrom(
+              style: TextButton.styleFrom(
                 foregroundColor: kBlue,
-                side: BorderSide(color: kBlue.withValues(alpha: 0.35)),
-                minimumSize: const Size(double.infinity, 44),
+                padding: EdgeInsets.zero,
               ),
               icon: const Icon(Icons.add, size: 18),
               label: Text(S.get('add_drop')),
             ),
           ],
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 22),
+          if (_missingValues)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Text(S.get('insert_weight_reps'),
+                  style: const TextStyle(color: kRed, fontSize: 13.5)),
+            ),
           ElevatedButton(
             onPressed: _save,
             child: Text(widget.editSeries != null
@@ -550,39 +496,8 @@ class _SeriesSheetState extends State<SeriesSheet> {
       ),
     );
   }
-
-  Widget _typeBtn(SeriesType type, String label) {
-    final selected = _type == type;
-    // Ogni tipo usa il proprio colore, lo stesso del badge che comparira'
-    // nella lista: cosi' si impara la codifica scegliendo, non leggendo.
-    final color = switch (type) {
-      SeriesType.normal => kAccent,
-      SeriesType.help => kOrange,
-      SeriesType.drop => kBlue,
-    };
-    return GestureDetector(
-      onTap: () => _setType(type),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 130),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: selected ? color.withValues(alpha: 0.15) : kSurface2,
-          border: Border.all(color: selected ? color : Colors.transparent),
-          borderRadius: BorderRadius.circular(kRadiusControl),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12.5,
-            color: selected ? color : kText2,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-          ),
-        ),
-      ),
-    );
-  }
 }
+
 
 class _DropControllers {
   final TextEditingController weight;

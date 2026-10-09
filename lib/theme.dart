@@ -1,8 +1,12 @@
 // lib/theme.dart
 //
-// Design system di GymTracker 2.0.
-// Stessi preset colore della v1, superfici piu morbide, raggi e spaziature
-// coerenti, tipografia piu leggibile.
+// Design system di GymTracker 2.0 — versione minimal.
+//
+// Regole:
+//  - Monocromo. L'accento serve per UNA cosa per schermata (l'azione
+//    principale) e per i dati da evidenziare; tutto il resto e' testo.
+//  - Niente card bordate in lista: righe piatte separate da una linea sottile.
+//  - La gerarchia la fanno dimensione e peso del testo, non i riquadri.
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -40,30 +44,42 @@ AccentPreset getPreset(String id) =>
 // Colori "correnti", aggiornati da AppTheme.apply()
 Color kAccent = const Color(0xFF8B5CF6);
 Color kAccent2 = const Color(0xFF6366F1);
-Color kBg = const Color(0xFF0A0A0C);
-Color kSurface = const Color(0xFF131316);
-Color kSurface2 = const Color(0xFF1B1B1F);
-Color kSurface3 = const Color(0xFF2A2A30);
-Color kText = const Color(0xFFF5F5F7);
-Color kText2 = const Color(0xFFA6A6B0);
-Color kText3 = const Color(0xFF5B5B66);
+Color kBg = const Color(0xFF0C0C0D);
+
+/// Fondo di sheet, dialog e barra di navigazione.
+Color kSurface = const Color(0xFF151517);
+
+/// Fondo di campi di testo, stepper e segmenti.
+Color kSurface2 = const Color(0xFF1C1C1F);
+
+/// Elementi spenti: corpo non allenato, cursori, bordi forti.
+Color kSurface3 = const Color(0xFF2A2A2E);
+
+/// Linea sottile fra le righe di una lista.
+Color kLine = const Color(0xFF202023);
+Color kText = const Color(0xFFF4F4F5);
+Color kText2 = const Color(0xFFA1A1AA);
+Color kText3 = const Color(0xFF7A7A83);
 const kRed = Color(0xFFEF4444);
 const kBlue = Color(0xFF60A5FA);
 const kOrange = Color(0xFFFB923C);
 const kGreen = Color(0xFF4ADE80);
 
-// Raggi standard: card 18, controlli 12, sheet 28, pillole 999.
-const kRadiusCard = 18.0;
-const kRadiusControl = 12.0;
-const kRadiusSheet = 28.0;
+// Raggi: piu' piccoli e uguali ovunque.
+const kRadiusCard = 14.0;
+const kRadiusControl = 10.0;
+const kRadiusSheet = 22.0;
 const kRadiusPill = 999.0;
 
 // Spaziature standard: usare queste invece di numeri sparsi.
 const kGapPage = 20.0; // margine laterale di pagina
-const kGapCard = 12.0; // distanza fra due card
-const kGapItem = 8.0; // distanza fra elementi dentro una card
+const kGapCard = 12.0; // distanza fra due blocchi
+const kGapItem = 8.0; // distanza fra elementi dentro un blocco
 /// Spazio libero in fondo alle liste, per non finire sotto FAB e navbar.
-const kBottomSafeSpace = 96.0;
+const kBottomSafeSpace = 104.0;
+
+/// Cifre a larghezza fissa: pesi e reps restano incolonnati.
+const kTabular = [FontFeature.tabularFigures()];
 
 class AppTheme {
   static void apply(String mode, String presetId, {Color? customPrimary}) {
@@ -73,25 +89,79 @@ class AppTheme {
     kAccent2 = useCustom ? _deriveSecondary(kAccent) : preset.secondary;
 
     if (mode == 'dark') {
-      kBg = const Color(0xFF0A0A0C);
-      kSurface = const Color(0xFF131316);
-      kSurface2 = const Color(0xFF1B1B1F);
-      kSurface3 = const Color(0xFF2A2A30);
-      kText = const Color(0xFFF5F5F7);
-      kText2 = const Color(0xFFAFAFB9);
-      // Il vecchio 0xFF5B5B66 stava sotto il rapporto 4.5:1 sul fondo scuro:
-      // le info secondarie (date, conteggi) erano poco leggibili.
-      kText3 = const Color(0xFF7C7C88);
+      kBg = const Color(0xFF0C0C0D);
+      kSurface = const Color(0xFF151517);
+      kSurface2 = const Color(0xFF1C1C1F);
+      kSurface3 = const Color(0xFF2A2A2E);
+      kLine = const Color(0xFF202023);
+      kText = const Color(0xFFF4F4F5);
+      kText2 = const Color(0xFFA1A1AA);
+      // Sopra 4.5:1 sul fondo: date e conteggi devono restare leggibili.
+      kText3 = const Color(0xFF7A7A83);
     } else {
-      kBg = const Color(0xFFF6F6F9);
+      kBg = const Color(0xFFFFFFFF);
       kSurface = const Color(0xFFFFFFFF);
-      kSurface2 = const Color(0xFFEFEFF4);
-      kSurface3 = const Color(0xFFD8D8DE);
-      kText = const Color(0xFF17171B);
-      kText2 = const Color(0xFF54545E);
-      kText3 = const Color(0xFF80808C);
+      kSurface2 = const Color(0xFFF2F2F4);
+      kSurface3 = const Color(0xFFE0E0E5);
+      kLine = const Color(0xFFEDEDF0);
+      kText = const Color(0xFF111113);
+      kText2 = const Color(0xFF5B5B64);
+      kText3 = const Color(0xFF777780);
     }
   }
+}
+
+// ─── TIPOGRAFIA ─────────────────────────────────────────────────────────────
+// Pochi stili, sempre gli stessi. Getter e non costanti: i colori cambiano
+// col tema.
+class T {
+  /// Titolo di pagina ("Oggi", "Storico").
+  static TextStyle get display => GoogleFonts.inter(
+        fontSize: 30,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.9,
+        height: 1.15,
+        color: kText,
+      );
+
+  /// Titolo di sheet e di blocco ("Panca piana").
+  static TextStyle get title => GoogleFonts.inter(
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.3,
+        color: kText,
+      );
+
+  /// Testo di una riga di lista.
+  static TextStyle get body => GoogleFonts.inter(
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+        letterSpacing: -0.1,
+        color: kText,
+      );
+
+  /// Informazione secondaria sotto un titolo.
+  static TextStyle get meta => GoogleFonts.inter(
+        fontSize: 13,
+        color: kText2,
+        letterSpacing: -0.05,
+      );
+
+  /// Etichetta di sezione e testo di contorno.
+  static TextStyle get label => GoogleFonts.inter(
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+        color: kText3,
+      );
+
+  /// Numero grande (pesi, statistiche).
+  static TextStyle get number => GoogleFonts.inter(
+        fontSize: 28,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.8,
+        color: kText,
+        fontFeatures: kTabular,
+      );
 }
 
 Color _deriveSecondary(Color color) {
@@ -131,6 +201,7 @@ ThemeData buildTheme(String mode, String presetId, {Color? customPrimary}) {
   return ThemeData(
     brightness: brightness,
     scaffoldBackgroundColor: kBg,
+    splashFactory: InkRipple.splashFactory,
     colorScheme: ColorScheme(
       brightness: brightness,
       primary: kAccent,
@@ -142,42 +213,29 @@ ThemeData buildTheme(String mode, String presetId, {Color? customPrimary}) {
       error: kRed,
       onError: Colors.white,
     ),
-    textTheme: GoogleFonts.interTextTheme(baseTextTheme).copyWith(
-      displayLarge: GoogleFonts.inter(
-        color: kText,
-        fontSize: 28,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.4,
-      ),
-      displayMedium: GoogleFonts.inter(
-        color: kText,
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.3,
-      ),
-      displaySmall: GoogleFonts.inter(
-        color: kText,
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.2,
-      ),
+    textTheme: GoogleFonts.interTextTheme(baseTextTheme).apply(
+      bodyColor: kText,
+      displayColor: kText,
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: kBg,
       elevation: 0,
       scrolledUnderElevation: 0,
+      centerTitle: false,
+      titleSpacing: 4,
       titleTextStyle: GoogleFonts.inter(
         color: kText,
-        fontSize: 19,
+        fontSize: 17,
         fontWeight: FontWeight.w600,
-        letterSpacing: -0.2,
+        letterSpacing: -0.3,
       ),
-      iconTheme: IconThemeData(color: kText),
+      iconTheme: IconThemeData(color: kText, size: 22),
+      actionsIconTheme: IconThemeData(color: kText2, size: 22),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: kSurface2,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(kRadiusControl),
         borderSide: BorderSide.none,
@@ -188,18 +246,22 @@ ThemeData buildTheme(String mode, String presetId, {Color? customPrimary}) {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(kRadiusControl),
-        borderSide: BorderSide(color: kAccent, width: 1.6),
+        borderSide: BorderSide(color: kText3, width: 1),
       ),
-      labelStyle: TextStyle(color: kText2),
+      labelStyle: TextStyle(color: kText3),
+      floatingLabelStyle: TextStyle(color: kText2),
       hintStyle: TextStyle(color: kText3),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: kAccent,
         foregroundColor: Colors.white,
+        disabledBackgroundColor: kSurface2,
+        disabledForegroundColor: kText3,
         elevation: 0,
-        minimumSize: const Size(double.infinity, 54),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        minimumSize: const Size(double.infinity, 52),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(kRadiusControl + 2)),
         textStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15),
       ),
     ),
@@ -208,7 +270,14 @@ ThemeData buildTheme(String mode, String presetId, {Color? customPrimary}) {
         foregroundColor: kText,
         side: BorderSide(color: kSurface3),
         minimumSize: const Size(0, 48),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(kRadiusControl + 2)),
+        textStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: kText,
         textStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
       ),
     ),
@@ -217,22 +286,47 @@ ThemeData buildTheme(String mode, String presetId, {Color? customPrimary}) {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(kRadiusCard),
-        side: BorderSide(color: kSurface3.withValues(alpha: 0.6)),
       ),
     ),
     dialogTheme: DialogThemeData(
       backgroundColor: kSurface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-      titleTextStyle: GoogleFonts.inter(color: kText, fontSize: 18, fontWeight: FontWeight.w600),
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(kRadiusSheet)),
+      titleTextStyle: GoogleFonts.inter(
+          color: kText, fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3),
       contentTextStyle: GoogleFonts.inter(color: kText2, fontSize: 14, height: 1.45),
     ),
-    snackBarTheme: SnackBarThemeData(
-      backgroundColor: kSurface2,
-      contentTextStyle: TextStyle(color: kText),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
     ),
-    dividerColor: kSurface3,
+    // Snackbar invertita: si stacca dal fondo senza bisogno di colore.
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: kText,
+      contentTextStyle: GoogleFonts.inter(color: kBg, fontSize: 14),
+      actionTextColor: kAccent,
+      behavior: SnackBarBehavior.floating,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(kRadiusControl + 2)),
+    ),
+    sliderTheme: SliderThemeData(
+      activeTrackColor: kText,
+      inactiveTrackColor: kSurface3,
+      thumbColor: kText,
+      overlayColor: kText.withValues(alpha: 0.08),
+      trackHeight: 3,
+    ),
+    progressIndicatorTheme: ProgressIndicatorThemeData(color: kText2),
+    dividerTheme: DividerThemeData(color: kLine, thickness: 1, space: 1),
+    dividerColor: kLine,
+    listTileTheme: ListTileThemeData(
+      iconColor: kText2,
+      textColor: kText,
+      contentPadding: const EdgeInsets.symmetric(horizontal: kGapPage),
+    ),
     useMaterial3: true,
   );
 }
+
+/// true col tema scuro attivo (letto dai colori correnti).
+bool get isDarkTheme => kBg.computeLuminance() < 0.5;

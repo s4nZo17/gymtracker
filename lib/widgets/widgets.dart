@@ -1,50 +1,58 @@
 // lib/widgets/widgets.dart
 //
-// Componenti condivisi della UI 2.0.
+// Componenti condivisi della UI minimal.
+//
+// Il principio e' uno: meno contenitori. Le liste sono righe piatte separate
+// da una linea sottile, i badge sono testo, l'accento si usa solo per
+// l'azione principale. Se una schermata ha bisogno di un pezzo nuovo, va qui.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/models.dart';
+import '../models/muscle_groups.dart';
 import '../theme.dart';
 import '../l10n/strings.dart';
 
 // ─── BOTTOM SHEET STANDARD ──────────────────────────────────────────────────
 // Tutti i fogli dell'app passano da qui: stesso raggio, stessa maniglia,
-// stesso padding. Piu coerenza = piu semplicita d'uso.
-Future<T?> showAppSheet<T>(
+// stesso padding.
+Future<R?> showAppSheet<R>(
   BuildContext context, {
   required Widget child,
   bool isScrollControlled = true,
 }) {
   final media = MediaQuery.of(context);
-  return showModalBottomSheet<T>(
+  return showModalBottomSheet<R>(
     context: context,
     isScrollControlled: isScrollControlled,
     backgroundColor: Colors.transparent,
+    barrierColor: Colors.black.withValues(alpha: 0.55),
     // Il foglio non deve mai finire sotto la status bar, nemmeno con la
     // tastiera aperta: lascio sempre libera la zona di sistema + 12px.
     constraints: BoxConstraints(
       maxHeight: media.size.height - media.padding.top - 12,
     ),
-    builder: (_) => Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+    builder: (sheetContext) => Padding(
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
       child: Container(
         constraints: BoxConstraints(
           maxHeight: media.size.height - media.padding.top - 12,
         ),
         decoration: BoxDecoration(
           color: kSurface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(kRadiusSheet)),
+          borderRadius:
+              const BorderRadius.vertical(top: Radius.circular(kRadiusSheet)),
         ),
         child: SafeArea(
           top: false,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Container(
-                width: 42,
+                width: 36,
                 height: 4,
                 decoration: BoxDecoration(
                   color: kSurface3,
@@ -60,40 +68,39 @@ Future<T?> showAppSheet<T>(
   );
 }
 
-/// Titolo standard dentro un bottom sheet.
+/// Titolo standard dentro un bottom sheet, con un'azione opzionale a destra.
 class SheetTitle extends StatelessWidget {
   final String text;
   final String? subtitle;
-  const SheetTitle(this.text, {super.key, this.subtitle});
+  final Widget? trailing;
+  const SheetTitle(this.text, {super.key, this.subtitle, this.trailing});
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.fromLTRB(kGapPage, 16, 12, 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(
-              width: double.infinity,
-              child: Text(
-                text,
-                style: GoogleFonts.inter(
-                  fontSize: 19,
-                  fontWeight: FontWeight.w600,
-                  color: kText,
-                  letterSpacing: -0.2,
-                ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(text, style: T.title.copyWith(fontSize: 19)),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(subtitle!, style: T.meta),
+                  ],
+                ],
               ),
             ),
-            if (subtitle != null) ...[
-              const SizedBox(height: 3),
-              Text(subtitle!, style: TextStyle(fontSize: 13, color: kText2)),
-            ],
+            if (trailing != null) trailing!,
           ],
         ),
       );
 }
 
 // ─── CONFERMA STANDARD ──────────────────────────────────────────────────────
+// Solo per cio' che non si puo' annullare.
 Future<bool> confirmDialog(
   BuildContext context, {
   required String title,
@@ -103,20 +110,20 @@ Future<bool> confirmDialog(
 }) async {
   final res = await showDialog<bool>(
     context: context,
-    builder: (_) => AlertDialog(
+    builder: (dialogContext) => AlertDialog(
       title: Text(title),
       content: message != null ? Text(message) : null,
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context, false),
+          onPressed: () => Navigator.pop(dialogContext, false),
           child: Text(S.get('cancel'), style: TextStyle(color: kText2)),
         ),
         TextButton(
-          onPressed: () => Navigator.pop(context, true),
+          onPressed: () => Navigator.pop(dialogContext, true),
           child: Text(
             confirmText ?? S.get('confirm'),
             style: TextStyle(
-              color: destructive ? kRed : kAccent,
+              color: destructive ? kRed : kText,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -134,22 +141,29 @@ void showAppSnack(
   BuildContext context,
   String message, {
   VoidCallback? onUndo,
-  IconData? icon,
+  bool error = false,
+}) =>
+    showAppSnackOn(ScaffoldMessenger.of(context), message,
+        onUndo: onUndo, error: error);
+
+/// Come [showAppSnack], ma su un messenger preso prima di chiudere uno sheet
+/// o una pagina (dopo il pop il context non e' piu' valido).
+void showAppSnackOn(
+  ScaffoldMessengerState messenger,
+  String message, {
+  VoidCallback? onUndo,
+  bool error = false,
 }) {
-  final messenger = ScaffoldMessenger.of(context);
   messenger.hideCurrentSnackBar();
   messenger.showSnackBar(
     SnackBar(
-      content: Row(
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 18, color: kAccent),
-            const SizedBox(width: 10),
-          ],
-          Expanded(
-            child: Text(message, style: TextStyle(color: kText, fontSize: 13.5)),
-          ),
-        ],
+      content: Text(
+        message,
+        style: TextStyle(
+          color: error ? kRed : kBg,
+          fontSize: 14,
+          fontWeight: error ? FontWeight.w600 : FontWeight.w500,
+        ),
       ),
       duration: Duration(seconds: onUndo != null ? 5 : 2),
       action: onUndo == null
@@ -164,11 +178,12 @@ void showAppSnack(
 }
 
 // ─── HEADER DI PAGINA ───────────────────────────────────────────────────────
-// Tutte e cinque le schede usano questo header: stesso titolo, stesso
-// allineamento, stessa aria. Sostituisce le AppBar disomogenee della 2.0.
+// Tutte le schede si aprono cosi': titolo grande, una riga di contesto,
+// azione opzionale a destra, eventuale riga sotto (ricerca o toggle).
 class PageHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
+  final Widget? subtitleWidget;
   final Widget? trailing;
   final Widget? bottom;
 
@@ -176,6 +191,7 @@ class PageHeader extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.subtitleWidget,
     this.trailing,
     this.bottom,
   });
@@ -184,30 +200,24 @@ class PageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
-          kGapPage, MediaQuery.of(context).padding.top + 14, kGapPage, 6),
+          kGapPage, MediaQuery.of(context).padding.top + 18, kGapPage, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.inter(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.5,
-                        color: kText,
-                      ),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(subtitle!,
-                          style: TextStyle(fontSize: 13, color: kText2)),
+                    Text(title, style: T.display),
+                    if (subtitleWidget != null) ...[
+                      const SizedBox(height: 4),
+                      subtitleWidget!,
+                    ] else if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      Text(subtitle!, style: T.meta),
                     ],
                   ],
                 ),
@@ -215,46 +225,122 @@ class PageHeader extends StatelessWidget {
               if (trailing != null) trailing!,
             ],
           ),
-          if (bottom != null) ...[const SizedBox(height: 12), bottom!],
+          if (bottom != null) ...[const SizedBox(height: 16), bottom!],
         ],
       ),
     );
   }
 }
 
+/// Bottone testuale compatto per l'header ("Nuovo giorno", "+ Nuovo"...).
+class HeaderAction extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final VoidCallback onTap;
+  final bool accent;
+
+  const HeaderAction({
+    super.key,
+    required this.label,
+    required this.onTap,
+    this.icon,
+    this.accent = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = accent ? Colors.white : kText;
+    return Material(
+      color: accent ? kAccent : kSurface2,
+      borderRadius: BorderRadius.circular(kRadiusPill),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(kRadiusPill),
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(icon != null ? 11 : 14, 8, 14, 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 17, color: fg),
+                const SizedBox(width: 5),
+              ],
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: fg,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ─── CAMPO DI RICERCA ───────────────────────────────────────────────────────
-class AppSearchField extends StatelessWidget {
+class AppSearchField extends StatefulWidget {
   final String hint;
   final String value;
   final ValueChanged<String> onChanged;
+  final bool autofocus;
 
   const AppSearchField({
     super.key,
     required this.hint,
     required this.value,
     required this.onChanged,
+    this.autofocus = false,
   });
 
   @override
+  State<AppSearchField> createState() => _AppSearchFieldState();
+}
+
+class _AppSearchFieldState extends State<AppSearchField> {
+  // Un controller che vive col widget: ricrearlo a ogni build spostava il
+  // cursore in fondo e perdeva la selezione mentre scrivevi.
+  late final TextEditingController _ctrl =
+      TextEditingController(text: widget.value);
+
+  @override
+  void didUpdateWidget(AppSearchField old) {
+    super.didUpdateWidget(old);
+    if (widget.value != _ctrl.text) {
+      _ctrl.value = TextEditingValue(
+        text: widget.value,
+        selection: TextSelection.collapsed(offset: widget.value.length),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final controller = TextEditingController(text: value);
-    controller.selection =
-        TextSelection.collapsed(offset: controller.text.length);
     return TextField(
-      controller: controller,
-      onChanged: onChanged,
+      controller: _ctrl,
+      autofocus: widget.autofocus,
+      onChanged: widget.onChanged,
       textInputAction: TextInputAction.search,
-      style: TextStyle(color: kText, fontSize: 14.5),
+      style: TextStyle(color: kText, fontSize: 15),
       decoration: InputDecoration(
-        hintText: hint,
+        hintText: widget.hint,
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         prefixIcon: Icon(Icons.search, color: kText3, size: 20),
-        prefixIconConstraints: const BoxConstraints(minWidth: 42),
-        suffixIcon: value.isEmpty
+        prefixIconConstraints: const BoxConstraints(minWidth: 40),
+        suffixIcon: widget.value.isEmpty
             ? null
             : IconButton(
-                onPressed: () => onChanged(''),
+                onPressed: () => widget.onChanged(''),
                 icon: Icon(Icons.close, size: 18, color: kText3),
                 visualDensity: VisualDensity.compact,
               ),
@@ -264,8 +350,8 @@ class AppSearchField extends StatelessWidget {
 }
 
 // ─── TOGGLE SEGMENTATO ──────────────────────────────────────────────────────
-// Un solo componente per tutti i selettori a due o piu' voci
-// (Grafici/Mappa, Peso/Volume, Incolla/Da file, IT/EN, Scuro/Chiaro...).
+// Un solo componente per tutti i selettori a due o piu' voci. Monocromo: il
+// segmento attivo si solleva dal binario, non si colora.
 class SegmentedToggle extends StatelessWidget {
   final List<String> labels;
   final int selected;
@@ -282,57 +368,159 @@ class SegmentedToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final radius = compact ? 8.0 : kRadiusControl;
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: kSurface2,
-        borderRadius: BorderRadius.circular(compact ? 11 : 14),
+        borderRadius: BorderRadius.circular(radius + 2),
       ),
       child: Row(
+        mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
         children: labels.asMap().entries.map((e) {
           final isSel = e.key == selected;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () {
-                if (!isSel) HapticFeedback.selectionClick();
-                onChanged(e.key);
-              },
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                curve: Curves.easeOut,
-                padding: EdgeInsets.symmetric(vertical: compact ? 7 : 11),
-                decoration: BoxDecoration(
-                  color: isSel ? kAccent : Colors.transparent,
-                  borderRadius: BorderRadius.circular(compact ? 9 : 11),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  e.value,
-                  style: TextStyle(
-                    fontSize: compact ? 12.5 : 14,
-                    fontWeight: FontWeight.w600,
-                    color: isSel ? Colors.white : kText2,
-                  ),
+          final segment = GestureDetector(
+            onTap: () {
+              if (!isSel) HapticFeedback.selectionClick();
+              onChanged(e.key);
+            },
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.symmetric(
+                  vertical: compact ? 6 : 9, horizontal: compact ? 12 : 8),
+              decoration: BoxDecoration(
+                color: isSel
+                    ? (isDarkTheme ? kSurface3 : Colors.white)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(radius),
+                boxShadow: isSel && !isDarkTheme
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.06),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        )
+                      ]
+                    : null,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                e.value,
+                style: GoogleFonts.inter(
+                  fontSize: compact ? 12.5 : 13.5,
+                  fontWeight: isSel ? FontWeight.w600 : FontWeight.w500,
+                  color: isSel ? kText : kText3,
                 ),
               ),
             ),
           );
+          return compact ? segment : Expanded(child: segment);
         }).toList(),
       ),
     );
   }
 }
 
+// ─── RIGA DI LISTA ──────────────────────────────────────────────────────────
+// La riga piatta che sostituisce le card: titolo, riga secondaria, qualcosa
+// a destra. La linea sotto separa senza incorniciare.
+class ListRow extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final Widget? subtitleWidget;
+  final Widget? leading;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final bool divider;
+  final Color? titleColor;
+  final EdgeInsetsGeometry padding;
+  final int subtitleMaxLines;
+
+  const ListRow({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.subtitleWidget,
+    this.leading,
+    this.trailing,
+    this.onTap,
+    this.onLongPress,
+    this.divider = true,
+    this.titleColor,
+    this.padding = const EdgeInsets.symmetric(horizontal: kGapPage, vertical: 13),
+    this.subtitleMaxLines = 3,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final row = InkWell(
+      onTap: onTap,
+      onLongPress: onLongPress,
+      child: Padding(
+        padding: padding,
+        child: Row(
+          children: [
+            if (leading != null) ...[leading!, const SizedBox(width: 14)],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: T.body.copyWith(color: titleColor ?? kText)),
+                  if (subtitleWidget != null) ...[
+                    const SizedBox(height: 3),
+                    subtitleWidget!,
+                  ] else if (subtitle != null && subtitle!.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle!,
+                      style: T.meta,
+                      maxLines: subtitleMaxLines,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (trailing != null) ...[const SizedBox(width: 12), trailing!],
+          ],
+        ),
+      ),
+    );
+    if (!divider) return row;
+    // Linea rientrata come il testo: separa senza incorniciare.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        row,
+        const Divider(indent: kGapPage, endIndent: kGapPage),
+      ],
+    );
+  }
+}
+
+/// Freccia discreta a fine riga. Costruttore non const di proposito: un
+/// widget const non si ricostruisce al cambio tema e resterebbe col colore
+/// vecchio (vedi la nota in MainShell).
+class RowChevron extends StatelessWidget {
+  // ignore: prefer_const_constructors_in_immutables
+  RowChevron({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      Icon(Icons.chevron_right, size: 20, color: kText3);
+}
+
 // ─── RIGA SERIE ─────────────────────────────────────────────────────────────
 // Stessa riga in Oggi e nello Storico: tocca per modificare, scorri per
-// eliminare (con annulla). Niente piu' "x" sempre armata sotto il pollice.
+// eliminare (con annulla).
 class SeriesRow extends StatelessWidget {
   final int index;
   final Series series;
   final VoidCallback onTap;
   final VoidCallback onDelete;
-  final bool dense;
 
   const SeriesRow({
     super.key,
@@ -340,13 +528,13 @@ class SeriesRow extends StatelessWidget {
     required this.series,
     required this.onTap,
     required this.onDelete,
-    this.dense = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: ValueKey('series-$index-${series.weight}-${series.reps}-${series.type}'),
+      key: ValueKey(
+          'series-$index-${series.weight}-${series.reps}-${series.type}-${identityHashCode(series)}'),
       direction: DismissDirection.endToStart,
       onDismissed: (_) {
         HapticFeedback.mediumImpact();
@@ -354,49 +542,50 @@ class SeriesRow extends StatelessWidget {
       },
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 18),
-        decoration: BoxDecoration(
-          color: kRed.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(12),
-        ),
+        padding: const EdgeInsets.only(right: 4),
         child: const Icon(Icons.delete_outline, color: kRed, size: 20),
       ),
-      child: Material(
-        color: kSurface2.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: 10, vertical: dense ? 7 : 10),
-            child: Row(
-              children: [
-                SeriesNumBadge(index + 1),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Text(
-                        '${formatWeight(series.weight)} kg × ${series.reps}',
-                        style: GoogleFonts.inter(
-                          fontSize: dense ? 14 : 15,
-                          fontWeight: FontWeight.w600,
-                          color: kText,
-                        ),
-                      ),
-                      SeriesBadge(series.type),
-                      if (series.type == SeriesType.drop && series.drops.isNotEmpty)
-                        DropsDisplay(series.drops),
-                    ],
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 26,
+                child: Text(
+                  '${index + 1}',
+                  style: T.label.copyWith(
+                    fontSize: 14,
+                    fontFeatures: kTabular,
                   ),
                 ),
-                Icon(Icons.chevron_right, size: 18, color: kText3),
-              ],
-            ),
+              ),
+              Expanded(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 2,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      '${formatWeight(series.weight)} kg × ${series.reps}',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: kText,
+                        letterSpacing: -0.2,
+                        fontFeatures: kTabular,
+                      ),
+                    ),
+                    SeriesBadge(series.type),
+                    if (series.type == SeriesType.drop &&
+                        series.drops.isNotEmpty)
+                      DropsDisplay(series.drops),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -408,30 +597,29 @@ class SeriesRow extends StatelessWidget {
 class SectionTitle extends StatelessWidget {
   final String text;
   final Widget? trailing;
-  const SectionTitle(this.text, {super.key, this.trailing});
+  final EdgeInsetsGeometry padding;
+  const SectionTitle(
+    this.text, {
+    super.key,
+    this.trailing,
+    this.padding = const EdgeInsets.fromLTRB(kGapPage, 22, kGapPage, 6),
+  });
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: padding,
         child: Row(
           children: [
-            Text(
-              text.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
-                letterSpacing: 1.6,
-                color: kText3,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const Spacer(),
+            Expanded(child: Text(text, style: T.label)),
             if (trailing != null) trailing!,
           ],
         ),
       );
 }
 
-// ─── CARD BASE ──────────────────────────────────────────────────────────────
+// ─── BLOCCO ─────────────────────────────────────────────────────────────────
+// Un riquadro tenue, senza bordo: per i pochi casi in cui serve raggruppare
+// (grafico, mappa del corpo, anteprime).
 class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -452,9 +640,9 @@ class AppCard extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: kSurface,
+        color: isDarkTheme ? kSurface : kSurface2.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(kRadiusCard),
-        border: Border.all(color: borderColor ?? kSurface3.withValues(alpha: 0.6)),
+        border: borderColor != null ? Border.all(color: borderColor!) : null,
       ),
       child: child,
     );
@@ -470,7 +658,8 @@ class AppCard extends StatelessWidget {
   }
 }
 
-// ─── SERIES BADGE ───────────────────────────────────────────────────────────
+// ─── TIPO SERIE ─────────────────────────────────────────────────────────────
+// Solo testo colorato: l'unico colore semantico che resta nella lista.
 class SeriesBadge extends StatelessWidget {
   final SeriesType type;
   const SeriesBadge(this.type, {super.key});
@@ -479,19 +668,12 @@ class SeriesBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     if (type == SeriesType.normal) return const SizedBox.shrink();
     final isHelp = type == SeriesType.help;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: (isHelp ? kOrange : kBlue).withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(7),
-      ),
-      child: Text(
-        isHelp ? '* ${S.get('help_short')}' : 'drop',
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: isHelp ? kOrange : kBlue,
-        ),
+    return Text(
+      isHelp ? '* ${S.get('help_short')}' : 'drop',
+      style: TextStyle(
+        fontSize: 12.5,
+        fontWeight: FontWeight.w600,
+        color: isHelp ? kOrange : kBlue,
       ),
     );
   }
@@ -505,48 +687,16 @@ class DropsDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (drops.isEmpty) return const SizedBox.shrink();
-    return Wrap(
-      spacing: 4,
-      runSpacing: 4,
-      children: drops
-          .map(
-            (d) => Text(
-              '→ ${formatWeight(d.weight)}×${d.reps}',
-              style: const TextStyle(fontSize: 12, color: kBlue),
-            ),
-          )
-          .toList(),
+    return Text(
+      drops.map((d) => '→ ${formatWeight(d.weight)}×${d.reps}').join('  '),
+      style: TextStyle(fontSize: 13, color: kText2, fontFeatures: kTabular),
     );
   }
 }
 
-// ─── SERIES NUMBER BADGE ────────────────────────────────────────────────────
-class SeriesNumBadge extends StatelessWidget {
-  final int num;
-  final bool accent;
-  const SeriesNumBadge(this.num, {super.key, this.accent = false});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        width: 30,
-        height: 30,
-        decoration: BoxDecoration(
-          color: accent ? kAccent.withValues(alpha: 0.14) : kSurface2,
-          borderRadius: BorderRadius.circular(9),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          '$num',
-          style: TextStyle(
-            fontSize: 12,
-            color: accent ? kAccent : kText2,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      );
-}
-
-// ─── LAST SESSION / RECORD CARD ─────────────────────────────────────────────
+// ─── ULTIMA VOLTA / RECORD ──────────────────────────────────────────────────
+// Contesto dentro lo sheet serie: due viste (ultima sessione, record) scelte
+// con un toggle esplicito. Testo su fondo tenue, niente cornici colorate.
 class LastSessionCard extends StatefulWidget {
   final String date;
   final List<Series> series;
@@ -573,7 +723,8 @@ class _LastSessionCardState extends State<LastSessionCard> {
   int _page = 0;
 
   bool get _hasLast => widget.series.isNotEmpty;
-  bool get _hasBest => widget.bestSeries != null && widget.bestSeries!.isNotEmpty;
+  bool get _hasBest =>
+      widget.bestSeries != null && widget.bestSeries!.isNotEmpty;
 
   /// Il toggle serve solo se ci sono davvero due viste: passando una lista di
   /// serie vuota la card diventa la sola vista "record".
@@ -581,19 +732,16 @@ class _LastSessionCardState extends State<LastSessionCard> {
 
   @override
   Widget build(BuildContext context) {
-    // Niente piu' PageView ad altezza calcolata a mano (andava in overflow
-    // quando le serie erano tante): la card si dimensiona sul contenuto e le
-    // due viste si scelgono con un toggle esplicito, non con uno swipe nascosto.
     final showBest = _hasBest && (_page == 1 || !_hasLast);
-    final highlight = showBest ? kOrange : kAccent;
+    final list = showBest ? widget.bestSeries! : widget.series;
+    final onUse = showBest ? widget.onUseBestSeries : widget.onUseSeries;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
       decoration: BoxDecoration(
-        color: highlight.withValues(alpha: 0.06),
-        border: Border.all(color: highlight.withValues(alpha: 0.25)),
-        borderRadius: BorderRadius.circular(14),
+        color: kSurface2,
+        borderRadius: BorderRadius.circular(kRadiusCard),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -601,148 +749,94 @@ class _LastSessionCardState extends State<LastSessionCard> {
         children: [
           Row(
             children: [
-              Icon(showBest ? Icons.emoji_events : Icons.bolt,
-                  color: highlight, size: 15),
-              const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  // Col toggle accanto, ripetere "ULTIMA VOLTA" era rumore:
-                  // basta dire di quale sessione si tratta.
                   showBest
-                      ? (_canToggle
-                          ? S.get('best_ever_sub')
-                          : '${S.get('tab_best')} · ${S.get('best_ever_sub')}')
+                      ? S.get('best_ever_sub')
                       : (_canToggle
                           ? widget.date
-                          : '${S.get('last_session')} · ${widget.date}'),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: highlight,
-                    letterSpacing: 0.6,
-                    fontWeight: FontWeight.w700,
-                  ),
+                          : '${S.get('last_time')} · ${widget.date}'),
+                  style: T.label.copyWith(fontSize: 12.5),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (_canToggle)
-                SizedBox(
-                  width: 132,
-                  child: SegmentedToggle(
-                    compact: true,
-                    labels: [S.get('tab_last'), S.get('tab_best')],
-                    selected: _page,
-                    onChanged: (i) => setState(() => _page = i),
-                  ),
+                SegmentedToggle(
+                  compact: true,
+                  labels: [S.get('tab_last'), S.get('tab_best')],
+                  selected: _page,
+                  onChanged: (i) => setState(() => _page = i),
                 ),
+              if (!_canToggle) const SizedBox(width: 6),
             ],
           ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: (showBest ? widget.bestSeries! : widget.series)
-                .asMap()
-                .entries
-                .map((e) {
-              final isHighlighted =
-                  !showBest && e.key == widget.currentSeriesIndex;
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                decoration: BoxDecoration(
-                  color: isHighlighted
-                      ? highlight.withValues(alpha: 0.16)
-                      : kSurface2,
-                  borderRadius: BorderRadius.circular(8),
-                  border: isHighlighted
-                      ? Border.all(color: highlight.withValues(alpha: 0.4))
-                      : null,
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: Wrap(
+              spacing: 14,
+              runSpacing: 4,
+              children: list.asMap().entries.map((e) {
+                final current = !showBest && e.key == widget.currentSeriesIndex;
+                return Text(
+                  e.value.summary,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: current ? FontWeight.w600 : FontWeight.w400,
+                    color: current ? kText : kText2,
+                    fontFeatures: kTabular,
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          if (onUse != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: onUse,
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, 34),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  foregroundColor: kAccent,
                 ),
                 child: Text(
-                  'S${e.key + 1}: ${e.value.summary}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isHighlighted ? highlight : kText2,
-                    fontWeight:
-                        isHighlighted ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          if ((showBest ? widget.onUseBestSeries : widget.onUseSeries) !=
-              null) ...[
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: Material(
-                color: highlight.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  onTap:
-                      showBest ? widget.onUseBestSeries : widget.onUseSeries,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 9),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.download_outlined, size: 15, color: highlight),
-                        const SizedBox(width: 6),
-                        Text(
-                          showBest
-                              ? S.get('use_best_values')
-                              : S.get('use_same_values'),
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            color: highlight,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  showBest
+                      ? S.get('use_best_values')
+                      : S.get('use_same_values'),
+                  style: const TextStyle(fontSize: 13.5),
                 ),
               ),
             ),
-          ],
         ],
       ),
     );
   }
 }
 
-// ─── STAT CARD ──────────────────────────────────────────────────────────────
-class StatCard extends StatelessWidget {
+// ─── METRICA ────────────────────────────────────────────────────────────────
+/// Un numero con la sua etichetta, senza riquadro.
+class Metric extends StatelessWidget {
   final String value;
   final String label;
   final Color? valueColor;
 
-  const StatCard({super.key, required this.value, required this.label, this.valueColor});
+  const Metric(
+      {super.key, required this.value, required this.label, this.valueColor});
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: kSurface,
-          borderRadius: BorderRadius.circular(kRadiusCard),
-          border: Border.all(color: kSurface3.withValues(alpha: 0.6)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              value,
-              style: GoogleFonts.inter(
-                fontSize: 26,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.4,
-                color: valueColor ?? kAccent,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(label, style: TextStyle(fontSize: 11.5, color: kText2)),
-          ],
-        ),
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(value,
+              style: T.number.copyWith(
+                  fontSize: 24, color: valueColor ?? kText),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 2),
+          Text(label, style: T.label.copyWith(fontSize: 12)),
+        ],
       );
 }
 
@@ -774,56 +868,83 @@ class EmptyState extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Container(
-                  width: 76,
-                  height: 76,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        kAccent.withValues(alpha: 0.16),
-                        kAccent.withValues(alpha: 0.05),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(26),
-                  ),
-                  child: Icon(icon, size: 34, color: kAccent),
-                ),
-                const SizedBox(height: 18),
+                Icon(icon, size: 28, color: kText3),
+                const SizedBox(height: 14),
               ],
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  color: kText,
-                  height: 1.4,
-                ),
+                style: T.title.copyWith(height: 1.35),
               ),
               if (subtitle != null) ...[
                 const SizedBox(height: 6),
                 Text(
                   subtitle!,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13.5, color: kText2, height: 1.5),
+                  style: T.meta.copyWith(height: 1.5),
                 ),
               ],
               if (actionLabel != null && onAction != null) ...[
                 const SizedBox(height: 22),
-                SizedBox(
-                  width: 220,
-                  child: ElevatedButton(
-                    onPressed: onAction,
-                    child: Text(actionLabel!),
-                  ),
+                HeaderAction(
+                  label: actionLabel!,
+                  icon: Icons.add,
+                  onTap: onAction!,
                 ),
               ],
             ],
           ),
         ),
       );
+}
+
+// ─── PICKER A PASTIGLIE ─────────────────────────────────────────────────────
+/// Una pastiglia selezionabile: piena (testo invertito) se scelta.
+class Pill extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+  final Color? color;
+
+  const Pill({
+    super.key,
+    required this.label,
+    required this.selected,
+    this.onTap,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final active = color ?? kText;
+    return GestureDetector(
+      onTap: onTap == null
+          ? null
+          : () {
+              HapticFeedback.selectionClick();
+              onTap!();
+            },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? active : kSurface2,
+          borderRadius: BorderRadius.circular(kRadiusPill),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 13.5,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            color: selected
+                ? (color == null ? kBg : Colors.white)
+                : (onTap == null ? kText3 : kText2),
+            fontFeatures: kTabular,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ─── REST PICKER ────────────────────────────────────────────────────────────
@@ -851,62 +972,9 @@ class _RestPickerDialogState extends State<RestPickerDialog> {
     _total = widget.initial ?? 90;
   }
 
-  void _haptic() => HapticFeedback.selectionClick();
-
   void _add(int secs) {
     setState(() => _total = (_total + secs).clamp(0, 15 * 60));
-    _haptic();
-  }
-
-  Widget _preset(String label, int secs) {
-    final selected = _total == secs;
-    return GestureDetector(
-      onTap: () {
-        setState(() => _total = secs);
-        _haptic();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? kAccent.withValues(alpha: 0.18) : kSurface2,
-          borderRadius: BorderRadius.circular(kRadiusControl),
-          border: Border.all(color: selected ? kAccent : Colors.transparent),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            color: selected ? kAccent : kText2,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _stepBtn(String label, int delta) {
-    return Expanded(
-      child: Material(
-        color: kSurface2,
-        borderRadius: BorderRadius.circular(kRadiusControl),
-        child: InkWell(
-          onTap: () => _add(delta),
-          borderRadius: BorderRadius.circular(kRadiusControl),
-          child: Container(
-            height: 46,
-            alignment: Alignment.center,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: delta > 0 ? kAccent : kText2,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    HapticFeedback.selectionClick();
   }
 
   @override
@@ -918,40 +986,31 @@ class _RestPickerDialogState extends State<RestPickerDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // display grande del tempo scelto
-            Text(
-              formatRest(_total),
-              style: GoogleFonts.inter(
-                fontSize: 52,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -1,
-                color: kAccent,
-              ),
-            ),
-            const SizedBox(height: 14),
             Row(
               children: [
-                _stepBtn('-30s', -30),
-                const SizedBox(width: 8),
-                _stepBtn('-5s', -5),
-                const SizedBox(width: 8),
-                _stepBtn('+5s', 5),
-                const SizedBox(width: 8),
-                _stepBtn('+30s', 30),
+                StepButton(label: '−15', onTap: () => _add(-15)),
+                Expanded(
+                  child: Text(
+                    formatRest(_total),
+                    textAlign: TextAlign.center,
+                    style: T.number.copyWith(fontSize: 44, letterSpacing: -1.5),
+                  ),
+                ),
+                StepButton(label: '+15', onTap: () => _add(15)),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 18),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               alignment: WrapAlignment.center,
               children: [
-                _preset('0:30', 30),
-                _preset('1:00', 60),
-                _preset('1:30', 90),
-                _preset('2:00', 120),
-                _preset('2:30', 150),
-                _preset('3:00', 180),
+                for (final s in const [30, 60, 90, 120, 150, 180])
+                  Pill(
+                    label: formatRest(s),
+                    selected: _total == s,
+                    onTap: () => setState(() => _total = s),
+                  ),
               ],
             ),
           ],
@@ -969,45 +1028,84 @@ class _RestPickerDialogState extends State<RestPickerDialog> {
         ),
         TextButton(
           onPressed: _total == 0 ? null : () => Navigator.pop(context, _total),
-          child: Text(
-            S.get('confirm'),
-            style: TextStyle(color: kAccent, fontWeight: FontWeight.w600),
-          ),
+          child: Text(S.get('confirm')),
         ),
       ],
     );
   }
 }
 
-// ─── REST BADGE ─────────────────────────────────────────────────────────────
-class RestBadge extends StatelessWidget {
-  final int seconds;
-  final bool inherited;
-  final VoidCallback? onTap;
-
-  const RestBadge({super.key, required this.seconds, this.inherited = false, this.onTap});
+/// Bottone quadrato per gli stepper (−2.5 / +1 / −15...).
+class StepButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  final double size;
+  const StepButton(
+      {super.key, required this.label, required this.onTap, this.size = 48});
 
   @override
   Widget build(BuildContext context) {
-    final color = inherited ? kText3 : kAccent;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-        decoration: BoxDecoration(
-          color: inherited ? kSurface2 : kAccent.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(9),
+    return Material(
+      color: kSurface2,
+      borderRadius: BorderRadius.circular(kRadiusControl),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(kRadiusControl),
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Center(
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: kText2,
+                fontFeatures: kTabular,
+              ),
+            ),
+          ),
         ),
+      ),
+    );
+  }
+}
+
+// ─── REST LABEL ─────────────────────────────────────────────────────────────
+/// Tempo di recupero come testo tappabile. [inherited] = preso dall'ultima
+/// volta, non impostato oggi: piu' spento.
+class RestBadge extends StatelessWidget {
+  final int? seconds;
+  final bool inherited;
+  final VoidCallback? onTap;
+
+  const RestBadge(
+      {super.key, required this.seconds, this.inherited = false, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = seconds == null || inherited ? kText3 : kText2;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.timer_outlined, size: 13, color: color),
-            const SizedBox(width: 4),
-            Text(
-              formatRest(seconds),
-              style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w700),
-            ),
+            Icon(Icons.timer_outlined, size: 15, color: color),
+            if (seconds != null) ...[
+              const SizedBox(width: 3),
+              Text(
+                formatRest(seconds!),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: color,
+                  fontWeight: FontWeight.w500,
+                  fontFeatures: kTabular,
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -1021,50 +1119,73 @@ class CategoryChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const CategoryChip({super.key, required this.label, required this.selected, required this.onTap});
+  const CategoryChip(
+      {super.key,
+      required this.label,
+      required this.selected,
+      required this.onTap});
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
-          decoration: BoxDecoration(
-            color: selected ? kAccent : kSurface2,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: selected ? Colors.white : kText2,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-            ),
-          ),
-        ),
-      );
+  Widget build(BuildContext context) =>
+      Pill(label: label, selected: selected, onTap: onTap);
 }
 
-// ─── MUSCLE TAG ─────────────────────────────────────────────────────────────
-class MuscleTag extends StatelessWidget {
-  final String label;
-  final bool primary;
-  const MuscleTag({super.key, required this.label, required this.primary});
+/// Riga di filtri per categoria a scorrimento orizzontale.
+class CategoryFilterBar extends StatelessWidget {
+  final List<String> categories;
+  final String selected; // '' = tutte
+  final ValueChanged<String> onChanged;
+
+  const CategoryFilterBar({
+    super.key,
+    required this.categories,
+    required this.selected,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: primary ? kAccent.withValues(alpha: 0.14) : kSurface2,
-        borderRadius: BorderRadius.circular(7),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 10.5, color: primary ? kAccent : kText3),
+    if (categories.isEmpty) return const SizedBox.shrink();
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: kGapPage),
+        children: [
+          CategoryChip(
+            label: S.get('all'),
+            selected: selected.isEmpty,
+            onTap: () => onChanged(''),
+          ),
+          for (final c in categories) ...[
+            const SizedBox(width: 6),
+            CategoryChip(
+              label: c,
+              selected: selected == c,
+              onTap: () => onChanged(selected == c ? '' : c),
+            ),
+          ],
+        ],
       ),
     );
   }
+}
+
+// ─── MUSCOLI ────────────────────────────────────────────────────────────────
+/// I muscoli di un esercizio in una riga di testo: "Petto · Tricipiti, Spalle".
+/// I primari prima, i secondari dopo e piu' spenti nel contenuto, non nel
+/// colore: non servono tag colorati per dire una cosa cosi' semplice.
+String muscleSummary(LibraryExercise ex) {
+  String names(List<String> ids) => ids
+      .map(getMuscleGroup)
+      .whereType<MuscleGroup>()
+      .map((m) => m.name(S.lang))
+      .join(', ');
+  final p = names(ex.primaryMuscles);
+  final s = names(ex.secondaryMuscles);
+  if (p.isEmpty) return s;
+  if (s.isEmpty) return p;
+  return '$p · $s';
 }
 
 // ─── CHIP GIORNO PREIMPOSTATO ───────────────────────────────────────────────
@@ -1075,49 +1196,32 @@ class DayChip extends StatelessWidget {
   final VoidCallback? onTap;
   final double fontSize;
 
-  const DayChip({super.key, this.dayName, this.onTap, this.fontSize = 11.5});
+  const DayChip({super.key, this.dayName, this.onTap, this.fontSize = 13});
 
   @override
   Widget build(BuildContext context) {
     final named = dayName != null && dayName!.trim().isNotEmpty;
-    final color = named ? kAccent : kText3;
-
-    final chip = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: named ? kAccent.withValues(alpha: 0.12) : kSurface2,
-        borderRadius: BorderRadius.circular(8),
+    final label = Text(
+      named ? dayName!.trim() : S.get('free_workout'),
+      style: TextStyle(
+        fontSize: fontSize,
+        color: named ? kText : kText3,
+        fontWeight: FontWeight.w500,
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(named ? Icons.flash_on : Icons.flash_off,
-              size: fontSize + 1, color: color),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              named ? dayName!.trim() : S.get('free_workout'),
-              style: TextStyle(
-                fontSize: fontSize,
-                color: color,
-                fontWeight: FontWeight.w600,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          if (onTap != null) ...[
-            const SizedBox(width: 2),
-            Icon(Icons.expand_more, size: fontSize + 3, color: color),
-          ],
-        ],
-      ),
+      overflow: TextOverflow.ellipsis,
     );
 
-    if (onTap == null) return chip;
+    if (onTap == null) return label;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: chip,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(child: label),
+          Icon(Icons.expand_more, size: fontSize + 4, color: kText3),
+        ],
+      ),
     );
   }
 }
@@ -1132,8 +1236,7 @@ class HistoryHitRow extends StatelessWidget {
   final List<Series> series;
   final VoidCallback? onUse;
 
-  /// true = riga di contorno sotto il riquadro principale: piu' piccola,
-  /// piu' spenta, una riga sola.
+  /// true = riga di contorno sotto il riquadro principale: piu' spenta.
   final bool secondary;
 
   const HistoryHitRow({
@@ -1147,66 +1250,48 @@ class HistoryHitRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fontSize = secondary ? 11.5 : 12.5;
     final summary = series.map((s) => s.summary).join('   ');
+    final day = (dayName != null && dayName!.trim().isNotEmpty)
+        ? dayName!.trim()
+        : S.get('free_workout');
 
-    final content = Padding(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: secondary ? 7 : 9),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: DayChip(
-                        dayName: dayName,
-                        fontSize: secondary ? 10.5 : 11.5,
-                      ),
+    return InkWell(
+      onTap: onUse,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('$day · $dateLabel',
+                      style: T.label.copyWith(fontSize: 12.5)),
+                  const SizedBox(height: 2),
+                  Text(
+                    summary,
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      color: secondary ? kText2 : kText,
+                      fontFeatures: kTabular,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      dateLabel,
-                      style: TextStyle(fontSize: fontSize - 0.5, color: kText3),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  summary,
-                  style: TextStyle(
-                    fontSize: fontSize,
-                    color: secondary ? kText2 : kText,
-                    fontWeight: secondary ? FontWeight.w400 : FontWeight.w500,
+                    maxLines: secondary ? 1 : 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: secondary ? 1 : 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          if (onUse != null) ...[
-            const SizedBox(width: 8),
-            Icon(Icons.download_outlined, size: 16, color: kText3),
-          ],
-        ],
-      ),
-    );
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Material(
-        color: kSurface2.withValues(alpha: secondary ? 0.55 : 1),
-        borderRadius: BorderRadius.circular(12),
-        child: onUse == null
-            ? content
-            : InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: onUse,
-                child: content,
+                ],
               ),
+            ),
+            if (onUse != null) ...[
+              const SizedBox(width: 8),
+              Text(S.get('use'),
+                  style: TextStyle(
+                      fontSize: 13,
+                      color: kAccent,
+                      fontWeight: FontWeight.w600)),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -1223,98 +1308,33 @@ class PendingSeriesRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: DottedBorderBox(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: kSurface2,
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${index + 1}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: kText3,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    S.get('series_to_do'),
-                    style: TextStyle(fontSize: 13, color: kText3),
-                  ),
-                  const Spacer(),
-                  Icon(Icons.add, size: 18, color: kText3),
-                ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 26,
+              child: Text(
+                '${index + 1}',
+                style: T.label.copyWith(
+                  fontSize: 14,
+                  color: kText3.withValues(alpha: 0.6),
+                  fontFeatures: kTabular,
+                ),
               ),
             ),
-          ),
+            Text(
+              '— ${S.get('series_to_do')}',
+              style: TextStyle(fontSize: 15, color: kText3),
+            ),
+          ],
         ),
       ),
     );
   }
-}
-
-/// Cornice tratteggiata leggera: distingue a colpo d'occhio cio' che e' ancora
-/// da fare da cio' che e' registrato.
-class DottedBorderBox extends StatelessWidget {
-  final Widget child;
-  const DottedBorderBox({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _DashedRectPainter(color: kSurface3),
-      child: child,
-    );
-  }
-}
-
-class _DashedRectPainter extends CustomPainter {
-  final Color color;
-  const _DashedRectPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-
-    final rrect = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      const Radius.circular(12),
-    );
-
-    const dash = 5.0;
-    const gap = 4.0;
-    for (final metric in (Path()..addRRect(rrect)).computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        final end = (distance + dash).clamp(0.0, metric.length);
-        canvas.drawPath(metric.extractPath(distance, end), paint);
-        distance = end + gap;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedRectPainter oldDelegate) => oldDelegate.color != color;
 }
 
 // ─── PICKER SERIE PREVISTE ──────────────────────────────────────────────────
@@ -1344,34 +1364,6 @@ class _TargetSeriesDialogState extends State<TargetSeriesDialog> {
     _selected = widget.initial ?? 3;
   }
 
-  Widget _option(int n) {
-    final selected = _selected == n;
-    return GestureDetector(
-      onTap: () {
-        setState(() => _selected = n);
-        HapticFeedback.selectionClick();
-      },
-      child: Container(
-        width: 44,
-        height: 44,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected ? kAccent.withValues(alpha: 0.18) : kSurface2,
-          borderRadius: BorderRadius.circular(kRadiusControl),
-          border: Border.all(color: selected ? kAccent : Colors.transparent),
-        ),
-        child: Text(
-          '$n',
-          style: TextStyle(
-            fontSize: 15,
-            color: selected ? kAccent : kText2,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -1380,18 +1372,20 @@ class _TargetSeriesDialogState extends State<TargetSeriesDialog> {
         width: 320,
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              S.get('target_series_desc'),
-              style: TextStyle(fontSize: 12.5, color: kText2, height: 1.4),
-            ),
+            Text(S.get('target_series_desc'), style: T.meta.copyWith(height: 1.4)),
             const SizedBox(height: 16),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              alignment: WrapAlignment.center,
               children: [
-                for (var n = 1; n <= kMaxTargetSeries; n++) _option(n),
+                for (var n = 1; n <= kMaxTargetSeries; n++)
+                  Pill(
+                    label: '$n',
+                    selected: _selected == n,
+                    onTap: () => setState(() => _selected = n),
+                  ),
               ],
             ),
           ],
@@ -1410,39 +1404,206 @@ class _TargetSeriesDialogState extends State<TargetSeriesDialog> {
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, _selected),
-          child: Text(
-            S.get('confirm'),
-            style: TextStyle(color: kAccent, fontWeight: FontWeight.w600),
-          ),
+          child: Text(S.get('confirm')),
         ),
       ],
     );
   }
 }
 
-// ─── RATING BADGE ───────────────────────────────────────────────────────────
+// ─── RATING ─────────────────────────────────────────────────────────────────
+/// Voto della sessione come testo: "8/10".
 class RatingBadge extends StatelessWidget {
   final int rating;
   final double fontSize;
-  const RatingBadge(this.rating, {super.key, this.fontSize = 11});
+  const RatingBadge(this.rating, {super.key, this.fontSize = 13});
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: EdgeInsets.symmetric(horizontal: fontSize * 0.7, vertical: fontSize * 0.35),
-        decoration: BoxDecoration(
-          color: kAccent.withValues(alpha: 0.13),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.favorite, color: kAccent, size: fontSize + 1),
-            const SizedBox(width: 3),
-            Text(
-              '$rating/10',
-              style: TextStyle(fontSize: fontSize, color: kAccent, fontWeight: FontWeight.w700),
-            ),
-          ],
-        ),
+  Widget build(BuildContext context) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.favorite, color: kText3, size: fontSize),
+          const SizedBox(width: 3),
+          Text(
+            '$rating/10',
+            style: TextStyle(
+                fontSize: fontSize,
+                color: kText2,
+                fontWeight: FontWeight.w500,
+                fontFeatures: kTabular),
+          ),
+        ],
       );
+}
+
+/// Dialog "Come ti senti?": numero grande, slider 1-10, Salta sempre possibile.
+class RatingDialog extends StatefulWidget {
+  final int? initial;
+  final String? confirmText;
+  const RatingDialog({super.key, this.initial, this.confirmText});
+
+  /// Ritorna il voto, 0 se l'utente salta, null se chiude il dialog.
+  static Future<int?> show(BuildContext context,
+      {int? initial, String? confirmText}) {
+    return showDialog<int>(
+      context: context,
+      builder: (_) =>
+          RatingDialog(initial: initial, confirmText: confirmText),
+    );
+  }
+
+  @override
+  State<RatingDialog> createState() => _RatingDialogState();
+}
+
+class _RatingDialogState extends State<RatingDialog> {
+  late int _selected = widget.initial ?? 7;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(S.get('rate_workout')),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(S.get('rate_workout_desc'), style: T.meta),
+          const SizedBox(height: 12),
+          Text('$_selected',
+              style: T.number.copyWith(fontSize: 52, letterSpacing: -2)),
+          Slider(
+            min: 1,
+            max: 10,
+            divisions: 9,
+            value: _selected.toDouble(),
+            onChanged: (v) {
+              if (v.round() != _selected) HapticFeedback.selectionClick();
+              setState(() => _selected = v.round());
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, 0),
+          child: Text(S.get('skip'), style: TextStyle(color: kText2)),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, _selected),
+          child: Text(widget.confirmText ?? S.get('confirm')),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── NOTA ───────────────────────────────────────────────────────────────────
+/// Unico editor di note, per Oggi e Storico. Ritorna il testo (anche vuoto =
+/// cancella) o null se annulli.
+Future<String?> showNoteEditor(
+  BuildContext context, {
+  String? current,
+  String? previous,
+}) {
+  final controller = TextEditingController(text: current ?? '');
+  return showDialog<String>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(S.get('note')),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (previous != null && (current == null || current.isEmpty)) ...[
+            Text(S.get('previous_note'), style: T.label.copyWith(fontSize: 12)),
+            const SizedBox(height: 4),
+            Text(previous,
+                style: T.meta.copyWith(fontStyle: FontStyle.italic)),
+            const SizedBox(height: 14),
+          ],
+          TextField(
+            controller: controller,
+            style: TextStyle(color: kText),
+            maxLines: 4,
+            minLines: 2,
+            autofocus: true,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: InputDecoration(hintText: S.get('add_note_hint')),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: Text(S.get('cancel'), style: TextStyle(color: kText2)),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, controller.text),
+          child: Text(S.get('save')),
+        ),
+      ],
+    ),
+  );
+}
+
+// ─── MENU AZIONI ────────────────────────────────────────────────────────────
+/// Una voce di un menu a foglio.
+class SheetAction {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool destructive;
+  const SheetAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.destructive = false,
+  });
+}
+
+/// Menu a foglio: titolo e un elenco di azioni. Sostituisce le file di
+/// icone minuscole: ogni azione ha il suo nome scritto.
+Future<void> showActionSheet(
+  BuildContext context, {
+  required String title,
+  String? subtitle,
+  required List<SheetAction> actions,
+}) {
+  return showAppSheet(
+    context,
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SheetTitle(title, subtitle: subtitle),
+          const SizedBox(height: 4),
+          for (final a in actions)
+            Builder(
+              builder: (itemContext) => InkWell(
+                onTap: () {
+                  Navigator.pop(itemContext);
+                  a.onTap();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: kGapPage, vertical: 14),
+                  child: Row(
+                    children: [
+                      Icon(a.icon,
+                          size: 21, color: a.destructive ? kRed : kText2),
+                      const SizedBox(width: 16),
+                      Text(
+                        a.label,
+                        style: T.body.copyWith(
+                            color: a.destructive ? kRed : kText),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
 }

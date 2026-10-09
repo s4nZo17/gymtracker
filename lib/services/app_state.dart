@@ -216,6 +216,27 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ─── SESSIONI ────────────────────────────────────────────────────────────
+
+  /// Elimina un'intera sessione dallo storico. Ritorna la posizione che
+  /// aveva, da passare a [insertSession] per l'annulla (-1 se non c'era).
+  int removeSession(WorkoutSession session) {
+    final idx = workouts.indexOf(session);
+    if (idx == -1) return -1;
+    workouts.removeAt(idx);
+    if (identical(_activeSession, session)) _activeSession = null;
+    _persistWorkouts();
+    notifyListeners();
+    return idx;
+  }
+
+  void insertSession(int index, WorkoutSession session) {
+    if (workouts.contains(session)) return;
+    workouts.insert(index.clamp(0, workouts.length), session);
+    _persistWorkouts();
+    notifyListeners();
+  }
+
   // ─── TEMPLATES ───────────────────────────────────────────────────────────
 
   void addTemplate(String name, List<TemplateExercise> exercises) {
@@ -265,6 +286,7 @@ class AppState extends ChangeNotifier {
 
   void applyTemplate(WorkoutTemplate template) {
     final session = todaySession;
+    _claimForToday(session);
 
     // Il primo giorno applicato fissa il contesto della sessione: se ne
     // applichi un secondo i numeri restano ancorati a quello con cui hai
@@ -451,6 +473,7 @@ class AppState extends ChangeNotifier {
     final exists = targetSession.exercises.any((ex) => _sameName(ex.name, name));
     if (exists) return false;
 
+    _claimForToday(targetSession);
     targetSession.exercises.add(ExerciseLog(name: name));
     _persistWorkouts();
     notifyListeners();
@@ -670,6 +693,33 @@ class AppState extends ChangeNotifier {
     if (best.isEmpty) return [];
     final maxIdx = best.keys.reduce((a, b) => a > b ? a : b);
     return List.generate(maxIdx + 1, (i) => best[i] ?? best.values.first);
+  }
+
+  /// Riepilogo di tutti gli esercizi in una passata sola (la lista di
+  /// Progressi chiamava getProgressData per ogni riga, ordinando ogni volta
+  /// tutto lo storico). Chiave: nome in minuscolo.
+  Map<String, ExerciseSummary> exerciseSummaries() {
+    final ordered = workouts.toList()..sort((a, b) => a.date.compareTo(b.date));
+    final out = <String, ExerciseSummary>{};
+    for (final session in ordered) {
+      for (final ex in session.exercises) {
+        if (ex.series.isEmpty) continue;
+        final key = ex.name.trim().toLowerCase();
+        var maxW = ex.series.first.weight;
+        for (final s in ex.series) {
+          if (s.weight > maxW) maxW = s.weight;
+        }
+        final prev = out[key];
+        out[key] = ExerciseSummary(
+          firstMax: prev?.firstMax ?? maxW,
+          lastMax: maxW,
+          bestMax: prev == null || maxW > prev.bestMax ? maxW : prev.bestMax,
+          sessions: (prev?.sessions ?? 0) + 1,
+          lastDate: session.date,
+        );
+      }
+    }
+    return out;
   }
 
   List<Map<String, dynamic>> getProgressData(String exerciseName) {
@@ -1120,6 +1170,16 @@ class AppState extends ChangeNotifier {
     return created;
   }
 
+  /// La sessione attiva vuota rimasta da un altro giorno diventa quella di
+  /// oggi appena ci metti dentro qualcosa: prima gli esercizi finivano con la
+  /// data vecchia. Una sessione con dati non si tocca mai (si puo' finire un
+  /// allenamento dopo mezzanotte).
+  void _claimForToday(WorkoutSession session) {
+    if (!identical(session, _activeSession)) return;
+    if (session.exercises.isNotEmpty) return;
+    session.date = _todayIso();
+  }
+
   WorkoutSession? _resolveSession(WorkoutSession session) {
     final idx = workouts.indexOf(session);
     if (idx == -1) return null;
@@ -1313,4 +1373,23 @@ class AppState extends ChangeNotifier {
         })
         .toList();
   }
+}
+
+/// Numeri essenziali di un esercizio su tutto lo storico.
+class ExerciseSummary {
+  final double firstMax;
+  final double lastMax;
+  final double bestMax;
+  final int sessions;
+  final String lastDate;
+
+  const ExerciseSummary({
+    required this.firstMax,
+    required this.lastMax,
+    required this.bestMax,
+    required this.sessions,
+    required this.lastDate,
+  });
+
+  double get delta => lastMax - firstMax;
 }

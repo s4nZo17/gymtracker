@@ -1,55 +1,91 @@
 // lib/widgets/session_day_picker.dart
 //
-// A quale giorno preimpostato appartiene una sessione. NON carica esercizi:
-// etichetta soltanto. Serve in due casi: hai applicato il giorno sbagliato
-// (applicarne un secondo non cambia il contesto, per non spostare i confronti
-// sotto i piedi), oppure vuoi etichettare a mano una sessione partita libera.
+// I due fogli sui giorni preimpostati, con la stessa forma:
+//  - showTemplateSheet: CARICA gli esercizi di un giorno nell'allenamento di
+//    oggi. E' l'unico punto da cui si applica un giorno (prima c'erano anche
+//    i bottoni "Applica" in Impostazioni, che non riportavano a Oggi).
+//  - showSessionDayPicker: ETICHETTA soltanto una sessione. Serve quando hai
+//    applicato il giorno sbagliato (applicarne un secondo non cambia il
+//    contesto, per non spostare i confronti sotto i piedi) o vuoi etichettare
+//    a mano una sessione partita libera.
 
 import 'package:flutter/material.dart';
 
 import '../l10n/strings.dart';
 import '../models/models.dart';
+import '../screens/templates_screen.dart';
 import '../services/app_state.dart';
 import '../theme.dart';
 import 'widgets.dart';
+
+Future<void> showTemplateSheet(BuildContext context, AppState state) {
+  if (state.templates.isEmpty) {
+    return Navigator.push(
+        context, MaterialPageRoute(builder: (_) => const TemplatesScreen()));
+  }
+
+  return showAppSheet(
+    context,
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SheetTitle(
+            S.get('templates'),
+            trailing: Builder(
+              builder: (sheetContext) => TextButton(
+                onPressed: () {
+                  Navigator.pop(sheetContext);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TemplatesScreen()),
+                  );
+                },
+                child: Text(S.get('manage'),
+                    style: TextStyle(color: kText2, fontSize: 14)),
+              ),
+            ),
+          ),
+          ...state.templates.map(
+            (template) => Builder(
+              builder: (sheetContext) => ListRow(
+                title: template.name,
+                subtitle: template.exerciseNames.join(' · '),
+                subtitleMaxLines: 1,
+                trailing: RowChevron(),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  state.applyTemplate(template);
+                  showAppSnack(context, S.get('template_applied'));
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
 Future<void> showSessionDayPicker(
   BuildContext context,
   AppState state,
   WorkoutSession session,
 ) {
-  Widget option({
-    required String label,
-    required bool selected,
-    WorkoutTemplate? template,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-      child: AppCard(
-        padding: const EdgeInsets.all(14),
-        borderColor: selected ? kAccent : null,
+  Widget option(String label, bool selected, WorkoutTemplate? template) {
+    return Builder(
+      builder: (sheetContext) => ListRow(
+        title: label,
+        titleColor: template == null ? kText2 : null,
+        trailing: selected
+            ? Icon(Icons.check, size: 20, color: kText)
+            : const SizedBox(width: 20),
         onTap: () {
           state.setSessionTemplate(session, template);
-          Navigator.pop(context);
+          Navigator.pop(sheetContext);
         },
-        child: Row(
-          children: [
-            Icon(template == null ? Icons.flash_off : Icons.flash_on,
-                size: 18, color: selected ? kAccent : kText3),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: selected ? kAccent : kText,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-            ),
-            if (selected) Icon(Icons.check_circle, size: 20, color: kAccent),
-          ],
-        ),
       ),
     );
   }
@@ -57,29 +93,16 @@ Future<void> showSessionDayPicker(
   return showAppSheet(
     context,
     child: SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SheetTitle(S.get('session_day')),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-            child: Text(
-              S.get('session_day_desc'),
-              style: TextStyle(fontSize: 12.5, color: kText2, height: 1.4),
-            ),
-          ),
-          ...state.templates.map((t) => option(
-                label: t.name,
-                selected: t.id == session.templateId,
-                template: t,
-              )),
-          option(
-            label: S.get('free_workout'),
-            selected: session.isFreeWorkout,
-            template: null,
-          ),
+          SheetTitle(S.get('session_day'), subtitle: S.get('session_day_desc')),
+          const SizedBox(height: 4),
+          ...state.templates.map(
+              (t) => option(t.name, t.id == session.templateId, t)),
+          option(S.get('free_workout'), session.isFreeWorkout, null),
         ],
       ),
     ),

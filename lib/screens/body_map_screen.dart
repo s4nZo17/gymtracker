@@ -1,4 +1,7 @@
 // lib/screens/body_map_screen.dart
+//
+// Mappa del corpo: quanto hai allenato ogni gruppo muscolare in una settimana
+// (serie effettive: i muscoli secondari contano meta').
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +12,7 @@ import '../models/muscle_groups.dart';
 import '../services/app_state.dart';
 import '../theme.dart';
 import '../widgets/body_map.dart';
+import '../widgets/widgets.dart';
 
 class BodyMapScreen extends StatefulWidget {
   const BodyMapScreen({super.key});
@@ -32,13 +36,18 @@ class _BodyMapScreenState extends State<BodyMapScreen> {
     return d.subtract(Duration(days: d.weekday - 1));
   }
 
-  void _prevWeek() => setState(() => _weekStart = _weekStart.subtract(const Duration(days: 7)));
+  void _prevWeek() => setState(
+      () => _weekStart = _weekStart.subtract(const Duration(days: 7)));
+
   void _nextWeek() {
     final next = _weekStart.add(const Duration(days: 7));
     if (!next.isAfter(DateTime.now())) {
       setState(() => _weekStart = next);
     }
   }
+
+  String _fmtSets(double sets) =>
+      sets.toStringAsFixed(sets == sets.roundToDouble() ? 0 : 1);
 
   @override
   Widget build(BuildContext context) {
@@ -47,162 +56,137 @@ class _BodyMapScreenState extends State<BodyMapScreen> {
         final data = state.getWeeklyMuscleStimulation(_weekStart);
         final locale = state.prefs.language == 'en' ? 'en_US' : 'it_IT';
         final weekEnd = _weekStart.add(const Duration(days: 6));
-        final dateLabel = '${DateFormat('d MMM', locale).format(_weekStart)} - ${DateFormat('d MMM', locale).format(weekEnd)}';
+        final isCurrent = _weekStart == _currentMonday();
+        final dateLabel = isCurrent
+            ? S.get('this_week')
+            : '${DateFormat('d MMM', locale).format(_weekStart)} – ${DateFormat('d MMM', locale).format(weekEnd)}';
+        final canGoNext =
+            !_weekStart.add(const Duration(days: 7)).isAfter(DateTime.now());
 
-        final canGoNext = !_weekStart.add(const Duration(days: 7)).isAfter(DateTime.now());
+        // Prima i muscoli allenati, dal piu' lavorato: la lista risponde
+        // subito a "cosa ho fatto questa settimana?".
+        final muscles = allMuscleGroups.toList()
+          ..sort((a, b) => (data[b.id] ?? 0).compareTo(data[a.id] ?? 0));
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-              kGapPage, 8, kGapPage, kBottomSafeSpace),
-          child: Column(
-            children: [
-              // Week selector
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: kSurface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: kSurface3),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.chevron_left, color: kText2),
-                      onPressed: _prevWeek,
+        return ListView(
+          padding: const EdgeInsets.only(top: 4, bottom: kBottomSafeSpace),
+          children: [
+            // Navigatore della settimana
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.chevron_left, color: kText2),
+                    onPressed: _prevWeek,
+                  ),
+                  Expanded(
+                    child: Text(
+                      dateLabel,
+                      textAlign: TextAlign.center,
+                      style: T.body.copyWith(fontWeight: FontWeight.w600),
                     ),
-                    Column(
-                      children: [
-                        Text(
-                          S.get('week_of'),
-                          style: TextStyle(fontSize: 10, color: kText3, letterSpacing: 1),
-                        ),
-                        Text(
-                          dateLabel,
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: kText),
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.chevron_right, color: canGoNext ? kText2 : kSurface3),
-                      onPressed: canGoNext ? _nextWeek : null,
-                    ),
-                  ],
-                ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.chevron_right,
+                        color: canGoNext ? kText2 : kSurface3),
+                    onPressed: canGoNext ? _nextWeek : null,
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
+            ),
+            const SizedBox(height: 8),
 
-              // Le due sagome stanno dentro una card come tutto il resto
-              // dell'app: prima erano appoggiate sul fondo nudo.
-              Container(
-                height: 380,
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-                decoration: BoxDecoration(
-                  color: kSurface,
-                  borderRadius: BorderRadius.circular(kRadiusCard),
-                  border: Border.all(color: kSurface3.withValues(alpha: 0.6)),
-                ),
+            SizedBox(
+              height: 360,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: kGapPage),
                 child: Row(
                   children: [
                     Expanded(
                       child: BodyMapView(
                         isFront: true,
                         stimulationData: data,
-                        label: S.get('front').toUpperCase(),
+                        label: S.get('front'),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: BodyMapView(
                         isFront: false,
                         stimulationData: data,
-                        label: S.get('back_view').toUpperCase(),
+                        label: S.get('back_view'),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+            ),
+            const SizedBox(height: 18),
 
-              // Legend
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: kSurface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: kSurface3),
-                ),
-                child: Column(
-                  children: [
-                    _legendRow(StimulationLevel.none, S.get('not_trained')),
-                    const SizedBox(height: 6),
-                    _legendRow(StimulationLevel.low, S.get('low_stim')),
-                    const SizedBox(height: 6),
-                    _legendRow(StimulationLevel.medium, S.get('medium_stim')),
-                    const SizedBox(height: 6),
-                    _legendRow(StimulationLevel.high, S.get('high_stim')),
-                  ],
-                ),
+            // Legenda in una riga
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: kGapPage),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 16,
+                runSpacing: 8,
+                children: [
+                  _legend(StimulationLevel.low, S.get('low_stim')),
+                  _legend(StimulationLevel.medium, S.get('medium_stim')),
+                  _legend(StimulationLevel.high, S.get('high_stim')),
+                ],
               ),
-              const SizedBox(height: 20),
+            ),
 
-              // Detailed muscle list
-              ...allMuscleGroups.map((m) {
-                final sets = data[m.id] ?? 0;
-                final level = stimulationFromSets(sets);
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 6),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            SectionTitle(S.get('effective_sets_title')),
+            ...muscles.map((m) {
+              final sets = data[m.id] ?? 0;
+              final level = stimulationFromSets(sets);
+              final trained = sets > 0;
+              return ListRow(
+                title: m.name(state.prefs.language),
+                titleColor: trained ? kText : kText3,
+                leading: Container(
+                  width: 10,
+                  height: 10,
                   decoration: BoxDecoration(
-                    color: kSurface,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: kSurface3),
+                    color: stimulationColor(level),
+                    shape: BoxShape.circle,
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: stimulationColor(level),
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          m.name(state.prefs.language),
-                          style: TextStyle(fontSize: 14, color: kText),
-                        ),
-                      ),
-                      Text(
-                        '${sets.toStringAsFixed(sets == sets.roundToDouble() ? 0 : 1)} ${S.get('effective_sets')}',
-                        style: TextStyle(fontSize: 12, color: kText2),
-                      ),
-                    ],
+                ),
+                trailing: Text(
+                  trained ? _fmtSets(sets) : '—',
+                  style: T.meta.copyWith(
+                    color: trained ? kText : kText3,
+                    fontWeight: FontWeight.w500,
+                    fontFeatures: kTabular,
                   ),
-                );
-              }),
-            ],
-          ),
+                ),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: kGapPage, vertical: 12),
+              );
+            }),
+          ],
         );
       },
     );
   }
 
-  Widget _legendRow(StimulationLevel level, String label) {
+  Widget _legend(StimulationLevel level, String label) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 16,
-          height: 16,
+          width: 10,
+          height: 10,
           decoration: BoxDecoration(
             color: stimulationColor(level),
-            borderRadius: BorderRadius.circular(4),
+            shape: BoxShape.circle,
           ),
         ),
-        const SizedBox(width: 10),
-        Text(label, style: TextStyle(fontSize: 13, color: kText2)),
+        const SizedBox(width: 6),
+        Text(label, style: T.label.copyWith(fontSize: 12.5)),
       ],
     );
   }
