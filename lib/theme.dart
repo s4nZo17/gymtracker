@@ -1,4 +1,8 @@
 // lib/theme.dart
+//
+// Design system di GymTracker 2.0.
+// Stessi preset colore della v1, superfici piu morbide, raggi e spaziature
+// coerenti, tipografia piu leggibile.
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -33,20 +37,33 @@ AccentPreset getPreset(String id) =>
     accentPresets.firstWhere((p) => p.id == id, orElse: () => accentPresets.first);
 
 // ─── DYNAMIC THEME COLORS ───────────────────────────────────────────────────
-// These are the "current" colors, updated by AppTheme.apply()
+// Colori "correnti", aggiornati da AppTheme.apply()
 Color kAccent = const Color(0xFF8B5CF6);
 Color kAccent2 = const Color(0xFF6366F1);
-Color kBg = const Color(0xFF09090B);
-Color kSurface = const Color(0xFF111113);
-Color kSurface2 = const Color(0xFF18181B);
-Color kSurface3 = const Color(0xFF27272A);
-Color kText = const Color(0xFFF4F4F5);
-Color kText2 = const Color(0xFFA1A1AA);
-Color kText3 = const Color(0xFF52525B);
+Color kBg = const Color(0xFF0A0A0C);
+Color kSurface = const Color(0xFF131316);
+Color kSurface2 = const Color(0xFF1B1B1F);
+Color kSurface3 = const Color(0xFF2A2A30);
+Color kText = const Color(0xFFF5F5F7);
+Color kText2 = const Color(0xFFA6A6B0);
+Color kText3 = const Color(0xFF5B5B66);
 const kRed = Color(0xFFEF4444);
 const kBlue = Color(0xFF60A5FA);
 const kOrange = Color(0xFFFB923C);
 const kGreen = Color(0xFF4ADE80);
+
+// Raggi standard: card 18, controlli 12, sheet 28, pillole 999.
+const kRadiusCard = 18.0;
+const kRadiusControl = 12.0;
+const kRadiusSheet = 28.0;
+const kRadiusPill = 999.0;
+
+// Spaziature standard: usare queste invece di numeri sparsi.
+const kGapPage = 20.0; // margine laterale di pagina
+const kGapCard = 12.0; // distanza fra due card
+const kGapItem = 8.0; // distanza fra elementi dentro una card
+/// Spazio libero in fondo alle liste, per non finire sotto FAB e navbar.
+const kBottomSafeSpace = 96.0;
 
 class AppTheme {
   static void apply(String mode, String presetId, {Color? customPrimary}) {
@@ -56,21 +73,23 @@ class AppTheme {
     kAccent2 = useCustom ? _deriveSecondary(kAccent) : preset.secondary;
 
     if (mode == 'dark') {
-      kBg = const Color(0xFF09090B);
-      kSurface = const Color(0xFF111113);
-      kSurface2 = const Color(0xFF18181B);
-      kSurface3 = const Color(0xFF27272A);
-      kText = const Color(0xFFF4F4F5);
-      kText2 = const Color(0xFFA1A1AA);
-      kText3 = const Color(0xFF52525B);
+      kBg = const Color(0xFF0A0A0C);
+      kSurface = const Color(0xFF131316);
+      kSurface2 = const Color(0xFF1B1B1F);
+      kSurface3 = const Color(0xFF2A2A30);
+      kText = const Color(0xFFF5F5F7);
+      kText2 = const Color(0xFFAFAFB9);
+      // Il vecchio 0xFF5B5B66 stava sotto il rapporto 4.5:1 sul fondo scuro:
+      // le info secondarie (date, conteggi) erano poco leggibili.
+      kText3 = const Color(0xFF7C7C88);
     } else {
-      kBg = const Color(0xFFF8F8FA);
+      kBg = const Color(0xFFF6F6F9);
       kSurface = const Color(0xFFFFFFFF);
-      kSurface2 = const Color(0xFFF0F0F3);
-      kSurface3 = const Color(0xFFD4D4D8);
-      kText = const Color(0xFF18181B);
-      kText2 = const Color(0xFF52525B);
-      kText3 = const Color(0xFFA1A1AA);
+      kSurface2 = const Color(0xFFEFEFF4);
+      kSurface3 = const Color(0xFFD8D8DE);
+      kText = const Color(0xFF17171B);
+      kText2 = const Color(0xFF54545E);
+      kText3 = const Color(0xFF80808C);
     }
   }
 }
@@ -127,54 +146,49 @@ ThemeData buildTheme(String mode, String presetId, {Color? customPrimary}) {
       displayLarge: GoogleFonts.inter(
         color: kText,
         fontSize: 28,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.2,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.4,
       ),
       displayMedium: GoogleFonts.inter(
         color: kText,
         fontSize: 24,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.2,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.3,
       ),
       displaySmall: GoogleFonts.inter(
         color: kText,
         fontSize: 20,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.1,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.2,
       ),
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: kBg,
       elevation: 0,
+      scrolledUnderElevation: 0,
       titleTextStyle: GoogleFonts.inter(
         color: kText,
-        fontSize: 18,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.1,
+        fontSize: 19,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.2,
       ),
       iconTheme: IconThemeData(color: kText),
-    ),
-    bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: kSurface,
-      selectedItemColor: kAccent,
-      unselectedItemColor: kText3,
-      type: BottomNavigationBarType.fixed,
-      elevation: 0,
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: kSurface2,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: kSurface3),
+        borderRadius: BorderRadius.circular(kRadiusControl),
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: kSurface3),
+        borderRadius: BorderRadius.circular(kRadiusControl),
+        borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: kAccent, width: 1.5),
+        borderRadius: BorderRadius.circular(kRadiusControl),
+        borderSide: BorderSide(color: kAccent, width: 1.6),
       ),
       labelStyle: TextStyle(color: kText2),
       hintStyle: TextStyle(color: kText3),
@@ -183,27 +197,40 @@ ThemeData buildTheme(String mode, String presetId, {Color? customPrimary}) {
       style: ElevatedButton.styleFrom(
         backgroundColor: kAccent,
         foregroundColor: Colors.white,
-        minimumSize: const Size(double.infinity, 52),
+        elevation: 0,
+        minimumSize: const Size(double.infinity, 54),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        textStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: kText,
+        side: BorderSide(color: kSurface3),
+        minimumSize: const Size(0, 48),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        textStyle: GoogleFonts.inter(fontWeight: FontWeight.w500, fontSize: 14),
+        textStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
       ),
     ),
     cardTheme: CardThemeData(
       color: kSurface,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: kSurface3),
+        borderRadius: BorderRadius.circular(kRadiusCard),
+        side: BorderSide(color: kSurface3.withValues(alpha: 0.6)),
       ),
     ),
     dialogTheme: DialogThemeData(
       backgroundColor: kSurface,
-      titleTextStyle: TextStyle(color: kText, fontSize: 18, fontWeight: FontWeight.w500),
-      contentTextStyle: TextStyle(color: kText2, fontSize: 14),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      titleTextStyle: GoogleFonts.inter(color: kText, fontSize: 18, fontWeight: FontWeight.w600),
+      contentTextStyle: GoogleFonts.inter(color: kText2, fontSize: 14, height: 1.45),
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: kSurface2,
       contentTextStyle: TextStyle(color: kText),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     ),
     dividerColor: kSurface3,
     useMaterial3: true,

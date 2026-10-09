@@ -14,6 +14,7 @@ class StorageService {
   static const String _workoutsCsvFile = 'storico.csv';
   static const String _libraryJsonFile = 'esercizi.json';
   static const String _libraryCsvFile = 'esercizi.csv';
+  static const String _templatesJsonFile = 'templates.json';
 
   Directory? _cachedBaseDir;
 
@@ -79,6 +80,29 @@ class StorageService {
     await _writeLibraryCsv(library);
   }
 
+  Future<List<WorkoutTemplate>> loadTemplates() async {
+    final raw = await _readJson(_templatesJsonFile);
+    if (raw is! List) return [];
+
+    final items = <WorkoutTemplate>[];
+    for (final item in raw) {
+      if (item is Map<String, dynamic>) {
+        items.add(WorkoutTemplate.fromJson(item));
+      } else if (item is Map) {
+        items.add(WorkoutTemplate.fromJson(Map<String, dynamic>.from(item)));
+      }
+    }
+    items.removeWhere((t) => t.name.trim().isEmpty);
+    return items;
+  }
+
+  Future<void> saveTemplates(List<WorkoutTemplate> templates) async {
+    await _writeJson(
+      _templatesJsonFile,
+      templates.map((t) => t.toJson()).toList(),
+    );
+  }
+
   Future<File> _file(String name) async {
     final dir = await _baseDir();
     return File('${dir.path}${Platform.pathSeparator}$name');
@@ -125,13 +149,16 @@ class StorageService {
 
   Future<void> _writeJson(String fileName, Object data) async {
     final f = await _file(fileName);
-    final encoder = const JsonEncoder.withIndent('  ');
+    const encoder = JsonEncoder.withIndent('  ');
     await f.writeAsString(encoder.convert(data), flush: true);
   }
 
   Future<void> _writeWorkoutsCsv(List<WorkoutSession> workouts) async {
+    // La colonna "day" è il giorno preimpostato della sessione (vuota per gli
+    // allenamenti liberi e per lo storico registrato prima dei contesti):
+    // senza di essa i pesi di uno stesso esercizio non sono confrontabili.
     final rows = <List<dynamic>>[
-      ['date', 'exercise', 'set', 'type', 'weight', 'reps', 'drops'],
+      ['date', 'day', 'exercise', 'set', 'type', 'weight', 'reps', 'drops'],
     ];
 
     for (final session in workouts) {
@@ -141,6 +168,7 @@ class StorageService {
           final drops = s.drops.map((d) => '${formatWeight(d.weight)}x${d.reps}').join(' | ');
           rows.add([
             session.date,
+            session.templateName ?? '',
             ex.name,
             i + 1,
             seriesTypeToString(s.type),

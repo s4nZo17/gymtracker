@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GymTracker 2.0 — Documento di design</title>
+<style>
+:root{--bg:#0A0A0C;--surface:#131316;--surface2:#1B1B1F;--line:#2A2A30;
+--text:#F5F5F7;--text2:#A6A6B0;--text3:#7A7A86;--accent:#8B5CF6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+font-family:Inter,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:48px 24px 96px}
+h1{font-size:34px;font-weight:600;letter-spacing:-.6px;margin:0 0 8px}
+h2{font-size:25px;font-weight:600;letter-spacing:-.3px;margin:64px 0 4px;
+padding-bottom:10px;border-bottom:1px solid var(--line)}
+h3{font-size:19px;font-weight:600;margin:36px 0 4px;color:var(--text)}
+h2::before,h3::before{content:"";display:inline-block;width:4px;height:.85em;
+background:var(--accent);border-radius:2px;margin-right:10px;vertical-align:-1px}
+p{color:var(--text2);margin:12px 0}
+strong{color:var(--text);font-weight:600}
+code{background:var(--surface2);border:1px solid var(--line);border-radius:6px;
+padding:1px 6px;font-size:.87em;color:#C4B5FD;font-family:ui-monospace,Menlo,Consolas,monospace}
+a{color:var(--accent)}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+ul,ol{color:var(--text2);padding-left:22px}
+li{margin:6px 0}
+blockquote{margin:20px 0;padding:14px 18px;background:rgba(251,146,60,.08);
+border-left:3px solid #FB923C;border-radius:0 12px 12px 0;color:var(--text2)}
+table{border-collapse:collapse;width:100%;margin:18px 0}
+table.data{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+table.data th{background:var(--surface2);text-align:left;font-size:12px;letter-spacing:.08em;
+text-transform:uppercase;color:var(--text3);padding:10px 14px;font-weight:600}
+table.data td{padding:10px 14px;border-top:1px solid var(--line);color:var(--text2);font-size:14.5px}
+table.gallery th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);
+font-weight:600;padding:0 8px 10px;text-align:center;vertical-align:bottom}
+table.gallery td{padding:0 8px 8px;vertical-align:top;text-align:center;width:1%}
+table.gallery img{width:100%;max-width:260px;border-radius:14px;border:1px solid var(--line);
+display:block;margin:0 auto}
+p.figure img{max-width:300px;width:100%;border-radius:16px;border:1px solid var(--line)}
+img{transition:transform .15s ease}
+a:hover img{transform:scale(1.02)}
+.meta{color:var(--text3);font-size:14px;margin-bottom:28px}
+@media (max-width:720px){table.gallery,table.gallery tbody,table.gallery tr{display:block}
+table.gallery thead{display:none}
+table.gallery td{display:inline-block;width:47%}}
+</style></head>
+<body><div class="wrap">
+<h1>GymTracker 2.0 — Documento di design</h1>
+<p>Ricognizione completa dell&#x27;interfaccia, schermata per schermata, con screenshot presi dall&#x27;app in esecuzione (emulatore Android <code>core36</code>, 1080×2400, densità 420dpi, build debug del 4 agosto 2026, <strong>dopo il restyling di UI e navigazione</strong>). I dati mostrati sono un set di prova: 25 allenamenti su ~9 settimane, 4 schede preimpostate, libreria di 26 esercizi.</p>
+<p>Tutti gli screenshot sono nella cartella <code>img/</code>.</p>
+<hr>
+<h2>1. Il sistema di design</h2>
+<p>Tutto il look dell&#x27;app nasce da <code>lib/theme.dart</code>. Non ci sono colori sparsi nelle schermate: le variabili globali (<code>kAccent</code>, <code>kBg</code>, <code>kSurface</code>…) vengono riscritte da <code>AppTheme.apply()</code> ogni volta che cambi tema o accento, e ogni widget le legge.</p>
+<h3>1.1 Colori</h3>
+<p><strong>Accento</strong> — 6 preset + colore libero:</p>
+<table class="data">
+<thead><tr><th>Preset</th><th>Nome</th><th>Primario</th><th>Secondario</th></tr></thead><tbody>
+<tr><td><code>obsidian</code></td><td>Obsidian (default)</td><td><code>#8B5CF6</code> viola</td><td><code>#6366F1</code></td></tr>
+<tr><td><code>ocean</code></td><td>Oceano</td><td><code>#3B82F6</code> blu</td><td><code>#06B6D4</code></td></tr>
+<tr><td><code>emerald</code></td><td>Smeraldo</td><td><code>#10B981</code> verde</td><td><code>#34D399</code></td></tr>
+<tr><td><code>crimson</code></td><td>Cremisi</td><td><code>#EF4444</code> rosso</td><td><code>#F97316</code></td></tr>
+<tr><td><code>amber</code></td><td>Ambra</td><td><code>#F59E0B</code> ambra</td><td><code>#FBBF24</code></td></tr>
+<tr><td><code>rose</code></td><td>Rosa</td><td><code>#EC4899</code> rosa</td><td><code>#F472B6</code></td></tr>
+<tr><td><code>custom</code></td><td>libero</td><td>scelto da te</td><td>derivato: +24° di tinta, −8% saturazione, +10% luminosità</td></tr>
+</tbody></table>
+<p><strong>Superfici e testo:</strong></p>
+<table class="data">
+<thead><tr><th>Ruolo</th><th>Tema scuro</th><th>Tema chiaro</th></tr></thead><tbody>
+<tr><td>Sfondo (<code>kBg</code>)</td><td><code>#0A0A0C</code></td><td><code>#F6F6F9</code></td></tr>
+<tr><td>Superficie card (<code>kSurface</code>)</td><td><code>#131316</code></td><td><code>#FFFFFF</code></td></tr>
+<tr><td>Superficie 2 — input, righe serie (<code>kSurface2</code>)</td><td><code>#1B1B1F</code></td><td><code>#EFEFF4</code></td></tr>
+<tr><td>Superficie 3 — bordi, divisori (<code>kSurface3</code>)</td><td><code>#2A2A30</code></td><td><code>#D8D8DE</code></td></tr>
+<tr><td>Testo primario (<code>kText</code>)</td><td><code>#F5F5F7</code></td><td><code>#17171B</code></td></tr>
+<tr><td>Testo secondario (<code>kText2</code>)</td><td><code>#A6A6B0</code></td><td><code>#54545E</code></td></tr>
+<tr><td>Testo terziario (<code>kText3</code>)</td><td><code>#5B5B66</code></td><td><code>#9E9EA8</code></td></tr>
+</tbody></table>
+<p><strong>Colori semantici</strong> (fissi, non cambiano con l&#x27;accento): rosso <code>#EF4444</code> (azioni distruttive), verde <code>#4ADE80</code> (miglioramenti, stimolo leggero), ambra <code>#FB923C</code> (serie &quot;con aiuto&quot;, stimolo moderato, record), blu <code>#60A5FA</code> (drop set).</p>
+<h3>1.2 Tipografia</h3>
+<p>Font unico: <strong>Inter</strong> (via <code>google_fonts</code>), usato per tutta l&#x27;app.</p>
+<table class="data">
+<thead><tr><th>Stile</th><th>Uso</th><th>Dimensione / peso</th></tr></thead><tbody>
+<tr><td><code>displayLarge</code></td><td>titoli grossi</td><td>28 / w600, tracking −0.4</td></tr>
+<tr><td><code>displayMedium</code></td><td>titolo di pagina (&quot;Domenica&quot;, &quot;Storico&quot;)</td><td>24 / w600, tracking −0.3</td></tr>
+<tr><td><code>displaySmall</code></td><td>titoli sezione</td><td>20 / w600, tracking −0.2</td></tr>
+<tr><td>AppBar</td><td>titolo delle schermate di secondo livello</td><td>19 / w600</td></tr>
+<tr><td>Corpo</td><td>testo normale</td><td>14–16</td></tr>
+<tr><td>Etichette</td><td>tag, badge, label maiuscole</td><td>10–12.5, spesso <code>letterSpacing</code> positivo</td></tr>
+</tbody></table>
+<p>Le label di sezione (&quot;PETTO&quot;, &quot;SESSIONI RECENTI&quot;, &quot;PESO (KG)&quot;) sono in maiuscolo, piccole, in <code>kText3</code>, con spaziatura tra le lettere: sono l&#x27;unico elemento &quot;tipografico decorativo&quot; dell&#x27;app.</p>
+<h3>1.3 Forme e spaziature</h3>
+<ul>
+<li>Raggi standardizzati in <code>theme.dart</code>: <strong>card 18</strong> (<code>kRadiusCard</code>), <strong>controlli 12</strong> (<code>kRadiusControl</code>), <strong>bottom sheet 28</strong> (<code>kRadiusSheet</code>), <strong>pillole</strong> (<code>kRadiusPill</code>). In pratica trovi anche 14–16 per bottoni e chip, 20–22 per dialog e fumetti del tour.</li>
+<li>Padding di pagina: <strong>20px</strong> sui lati.</li>
+<li>Bottoni principali: altezza minima <strong>54px</strong>, larghezza piena, raggio 16, senza ombra (<code>elevation: 0</code> ovunque — la profondità è data dal contrasto tra superfici, non dalle ombre).</li>
+<li>Card: fondo <code>kSurface</code>, bordo sottile <code>kSurface3</code> al 60% di opacità, nessuna ombra.</li>
+<li>La barra di navigazione è alta <strong>62px</strong>, con l&#x27;icona attiva dentro una &quot;pillola&quot; colorata di accento al 14%.</li>
+</ul>
+<h3>1.4 Componenti riutilizzabili (<code>lib/widgets/widgets.dart</code>)</h3>
+<p>Il restyling ha spostato in <code>widgets.dart</code> tutto quello che prima ogni schermata si costruiva da sé. Oggi le cinque schede sono composizioni degli stessi pezzi:</p>
+<table class="data">
+<thead><tr><th>Componente</th><th>A cosa serve</th></tr></thead><tbody>
+<tr><td><code>PageHeader</code></td><td>l&#x27;intestazione identica delle 5 schede: titolo, sottotitolo, azione a destra, riga opzionale sotto (ricerca o toggle)</td></tr>
+<tr><td><code>AppSearchField</code></td><td>il campo di ricerca di Esercizi, Storico e Progressi</td></tr>
+<tr><td><code>SegmentedToggle</code></td><td>tutte le scelte binarie/ternarie a pillola (Grafici/Mappa corpo, Peso/Volume, IT/EN, Scuro/Chiaro, Incolla testo/Da file…)</td></tr>
+<tr><td><code>SeriesRow</code></td><td>la riga di una serie, con swipe per eliminare</td></tr>
+<tr><td><code>showAppSnack</code></td><td>l&#x27;unico modo di dare feedback, con &quot;Annulla&quot; opzionale</td></tr>
+<tr><td><code>LastSessionCard</code></td><td>il riquadro &quot;sessione precedente / record&quot; dentro lo sheet serie</td></tr>
+<tr><td><code>showAppSheet</code>, <code>SheetTitle</code>, <code>confirmDialog</code></td><td>sheet e dialog standard</td></tr>
+<tr><td><code>AppCard</code>, <code>SectionTitle</code>, <code>EmptyState</code>, <code>StatCard</code></td><td>i mattoni delle liste e delle pagine di dettaglio</td></tr>
+<tr><td><code>SeriesBadge</code>, <code>SeriesNumBadge</code>, <code>DropsDisplay</code>, <code>RestBadge</code>, <code>RestPickerDialog</code>, <code>CategoryChip</code>, <code>MuscleTag</code>, <code>RatingBadge</code></td><td>i pezzi piccoli ricorrenti</td></tr>
+</tbody></table>
+<hr>
+<h2>2. Primo avvio</h2>
+<h3>2.1 Setup wizard (3 passi)</h3>
+<p>Sfondo nero pieno, logo <strong>GYMLOG</strong> con icona manubrio in accento, testo del passo, opzioni a card grandi, e in basso il bottone primario a destra + indicatore a puntini (quello attivo diventa una barretta).</p>
+<table class="gallery">
+<thead><tr><th>Lingua</th><th>Formato data</th><th>Tema + accento</th></tr></thead><tbody>
+<tr><td><a href="img/01-setup-lingua.png" target="_blank"><img src="img/01-setup-lingua.png" alt=""></a></td><td><a href="img/02-setup-data.png" target="_blank"><img src="img/02-setup-data.png" alt=""></a></td><td><a href="img/03-setup-tema.png" target="_blank"><img src="img/03-setup-tema.png" alt=""></a></td></tr>
+</tbody></table>
+<p>Le card selezionate si riconoscono da tre segnali insieme: bordo accento, fondo accento al 10%, testo in accento + spunta a destra. Gli emoji bandiera/calendario fanno da icona.</p>
+<p>Il selettore colore libero è un dialog dedicato con area saturazione/luminosità, slider di tinta, anteprima circolare e campo HEX:</p>
+<p class="figure"><a href="img/04-color-picker.png" target="_blank"><img src="img/04-color-picker.png" alt="Color picker"></a></p>
+<h3>2.2 Tour interattivo (4 passi)</h3>
+<p>Dopo il setup parte un tour costruito in casa (<code>widgets/app_tour.dart</code>): un overlay nero al 72% con un &quot;buco&quot; ritagliato sull&#x27;elemento spiegato, bordo luminoso in accento intorno al buco, e un fumetto che si posiziona sopra o sotto a seconda di dove c&#x27;è più spazio. Il fumetto ha il contatore <code>1/4</code> in un badge accento, titolo, testo e i bottoni Salta / Avanti.</p>
+<table class="gallery">
+<thead><tr><th>1 — Aggiungi esercizi</th><th>2 — Giorni preimpostati</th><th>3 — Nuovo giorno</th><th>4 — Tutto il resto</th></tr></thead><tbody>
+<tr><td><a href="img/05-tour-1.png" target="_blank"><img src="img/05-tour-1.png" alt=""></a></td><td><a href="img/06-tour-2.png" target="_blank"><img src="img/06-tour-2.png" alt=""></a></td><td><a href="img/07-tour-3.png" target="_blank"><img src="img/07-tour-3.png" alt=""></a></td><td><a href="img/08-tour-4.png" target="_blank"><img src="img/08-tour-4.png" alt=""></a></td></tr>
+</tbody></table>
+<p>Si può rilanciare da Impostazioni → &quot;Rivedi il tour&quot;.</p>
+<hr>
+<h2>3. Struttura dell&#x27;app</h2>
+<p>Dopo il setup c&#x27;è una sola shell (<code>MainShell</code>) con <strong>5 tab</strong> in un <code>IndexedStack</code> (le schermate restano vive, non si ricostruiscono quando cambi tab):</p>
+<p><strong>Oggi · Esercizi · Storico · Progressi · Impostazioni</strong></p>
+<p>Icona outline quando è spenta, icona piena + pillola accento + label in accento quando è attiva.</p>
+<p>Ogni scheda è avvolta nel proprio <code>ScaffoldMessenger</code>: le snackbar appartengono alla scheda che le ha generate e il pulsante flottante si sposta in su per lasciarle spazio, invece di finirci sotto.</p>
+<p>Tutte e cinque le schede si aprono con lo stesso <code>PageHeader</code> — titolo grande, sottotitolo di contesto (&quot;26 esercizi&quot;, &quot;25 allenamenti · Questo mese: 1&quot;), eventuale azione a destra e, subito sotto, ricerca o toggle. Le vecchie AppBar disomogenee non ci sono più: le AppBar sopravvivono solo nelle schermate di secondo livello (grafico esercizio, editor scheda, importa), dove servono per la freccia &quot;indietro&quot;.</p>
+<hr>
+<h2>4. Oggi</h2>
+<p>La schermata di lavoro. In alto un alone radiale dell&#x27;accento al 10% che sfuma verso il nero: è l&#x27;unico effetto &quot;atmosferico&quot; dell&#x27;app.</p>
+<p><strong>Header:</strong> giorno della settimana in grande, sotto la data + riepilogo &quot;4 esercizi · 6 serie&quot; (+ badge voto se la sessione è già stata valutata), e a destra il bottone <strong>Nuovo giorno</strong>. Subito sotto, la riga <strong>Giorni preimpostati</strong> per caricare una scheda intera.</p>
+<table class="gallery">
+<thead><tr><th>Vuoto</th><th>Con allenamento</th><th>Scorrendo</th></tr></thead><tbody>
+<tr><td><a href="img/09-oggi-vuoto.png" target="_blank"><img src="img/09-oggi-vuoto.png" alt=""></a></td><td><a href="img/10-oggi-pieno.png" target="_blank"><img src="img/10-oggi-pieno.png" alt=""></a></td><td><a href="img/11-oggi-scroll.png" target="_blank"><img src="img/11-oggi-scroll.png" alt=""></a></td></tr>
+</tbody></table>
+<p>Lo stato vuoto non è solo un&#x27;icona: propone le due azioni possibili (&quot;Aggiungi esercizio&quot; primario, &quot;Giorni preimpostati&quot; secondario).</p>
+<p><strong>Card esercizio:</strong> nome + icona nota se presente, sottotitolo con il riassunto delle serie (<code>2 serie · 85×8 / 85×6*</code>), badge del recupero (<code>⏱ 1:30</code>) e freccia per collassare. Poi la nota (se c&#x27;è) in un riquadro dedicato, e <strong>una riga per serie</strong> (<code>SeriesRow</code>): numero in un quadratino, <code>85 kg × 8</code> in grande, eventuale badge del tipo, chevron a destra. La riga intera è toccabile per modificare, e si <strong>scorre verso sinistra per eliminarla</strong>: parte subito, con una snackbar &quot;Serie eliminata · Annulla&quot; invece di una conferma preventiva. In fondo il bottone <strong>+ Aggiungi serie</strong> a piena larghezza, con accanto i bottoni nota, progressi e cestino.</p>
+<p>Codifica dei tipi di serie: nessun badge = normale; <code>* aiuto</code> in ambra = serie con aiuto; <code>drop</code> in blu seguito dalla catena <code>→ 10×10 → 7×8</code> = drop set.</p>
+<p>FAB esteso <strong>+ Esercizio</strong> in basso a destra.</p>
+<h3>4.1 Sheet &quot;Aggiungi serie&quot;</h3>
+<p>Il pezzo di UI più curato dell&#x27;app. Bottom sheet con:</p>
+<ul>
+<li>il riquadro di contesto in cima, con un toggle <strong>Ultima / Record</strong>: a sinistra la sessione precedente (in accento), a destra il record per serie (in ambra, con la coppa). Le serie sono chip che vanno a capo — la card si dimensiona sul contenuto, quindi non si taglia neanche con molte serie — e sotto c&#x27;è &quot;Usa stessi valori →&quot; / &quot;Usa questi valori →&quot;;</li>
+<li><strong>PESO (KG)</strong>: valore enorme al centro fra due bottoni <code>−2.5</code> / <code>+2.5</code>;</li>
+<li><strong>REPS</strong>: stessa struttura con <code>−1</code> / <code>+1</code>;</li>
+<li><strong>TIPO SERIE</strong>: tre pillole Normale / Con aiuto * / Drop set;</li>
+<li>bottone <strong>Salva serie</strong> a piena larghezza.</li>
+</ul>
+<p>Scegliendo <em>Drop set</em> compaiono le righe dei drop (badge <code>D1</code>, peso, reps, &quot;×&quot;) e il bottone <strong>Aggiungi drop</strong>, tutto in blu per coerenza con il badge nella lista.</p>
+<table class="gallery">
+<thead><tr><th>Serie normale</th><th>Drop set</th></tr></thead><tbody>
+<tr><td><a href="img/12-sheet-serie.png" target="_blank"><img src="img/12-sheet-serie.png" alt=""></a></td><td><a href="img/13-sheet-serie-drop.png" target="_blank"><img src="img/13-sheet-serie-drop.png" alt=""></a></td></tr>
+</tbody></table>
+<h3>4.2 Dialog di Oggi</h3>
+<table class="gallery">
+<thead><tr><th>Recupero</th><th>Nota esercizio</th><th>Voto sessione</th><th>Conferma eliminazione</th></tr></thead><tbody>
+<tr><td><a href="img/14-dialog-recupero.png" target="_blank"><img src="img/14-dialog-recupero.png" alt=""></a></td><td><a href="img/15-dialog-nota.png" target="_blank"><img src="img/15-dialog-nota.png" alt=""></a></td><td><a href="img/19-dialog-rating.png" target="_blank"><img src="img/19-dialog-rating.png" alt=""></a></td><td><a href="img/20-dialog-conferma.png" target="_blank"><img src="img/20-dialog-conferma.png" alt=""></a></td></tr>
+</tbody></table>
+<ul>
+<li><strong>Imposta recupero</strong>: tempo gigante in accento, ±30s/±5s, preset 0:30→3:00, e in rosso &quot;Rimuovi recupero&quot;.</li>
+<li><strong>Nota</strong>: dialog piccolo con campo multilinea bordato in accento.</li>
+<li><strong>Come ti senti?</strong>: appare premendo &quot;Nuovo giorno&quot; se la sessione ha serie e non è ancora valutata — slider 1-10 con il numero grande in accento, e &quot;Salta&quot; sempre disponibile.</li>
+<li><strong>Conferme</strong>: sempre lo stesso schema, titolo-domanda e due azioni testuali, quella distruttiva in rosso. Si usano solo dove non c&#x27;è un annullamento possibile.</li>
+</ul>
+<h3>4.3 Scelta esercizio e schede</h3>
+<table class="gallery">
+<thead><tr><th>Giorni preimpostati (sheet)</th><th>Aggiungi esercizio</th><th>Nuovo esercizio</th></tr></thead><tbody>
+<tr><td><a href="img/16-sheet-schede.png" target="_blank"><img src="img/16-sheet-schede.png" alt=""></a></td><td><a href="img/17-picker-esercizi.png" target="_blank"><img src="img/17-picker-esercizi.png" alt=""></a></td><td><a href="img/18-nuovo-esercizio.png" target="_blank"><img src="img/18-nuovo-esercizio.png" alt=""></a></td></tr>
+</tbody></table>
+<p>Nel picker ogni esercizio mostra <strong>&quot;Ultima volta: 77.5×12 / 87.5×10 / 92.5×8 / 92.5×6*&quot;</strong> o &quot;Nessuna sessione precedente&quot;, più i tag muscolari (primario in accento, secondari grigi). Quelli già inseriti oggi hanno bordo accento, nome in accento e spunta piena al posto del &quot;+&quot;. In alto: ricerca e filtri per categoria a pillole.</p>
+<p>La creazione di un nuovo esercizio chiede nome, categoria (a scelta libera o dalle pillole) e i muscoli <strong>primari</strong> e <strong>secondari</strong> — è questa informazione che alimenta la mappa del corpo.</p>
+<hr>
+<h2>5. Esercizi (libreria)</h2>
+<p>Lista di tutti gli esercizi raggruppati per categoria — con il conteggio accanto al nome della sezione (<code>PETTO · 4</code>) — ricerca e filtri a pillole in cima, FAB &quot;+&quot; per crearne di nuovi. Ogni riga: nome, tag muscolari, il <strong>peso massimo</strong> in un badge accento e il menu &quot;…&quot;.</p>
+<table class="gallery">
+<thead><tr><th>Libreria</th><th>Menu di un esercizio</th></tr></thead><tbody>
+<tr><td><a href="img/21-esercizi-libreria.png" target="_blank"><img src="img/21-esercizi-libreria.png" alt=""></a></td><td><a href="img/22-esercizi-menu.png" target="_blank"><img src="img/22-esercizi-menu.png" alt=""></a></td></tr>
+</tbody></table>
+<p>Il menu è uno sheet intitolato col nome dell&#x27;esercizio e la sua categoria, con tre voci: <strong>Vedi progressi</strong> (porta direttamente al grafico, senza passare dalla scheda Progressi), <strong>Modifica</strong>, <strong>Elimina</strong> in rosso.</p>
+<p>L&#x27;app parte con 26 esercizi predefiniti già categorizzati (Petto, Schiena, Gambe, Spalle, Bicipiti, Tricipiti, Core).</p>
+<hr>
+<h2>6. Storico</h2>
+<p>Un elenco di sessioni, una card per giorno, ordinate dalla più recente, raggruppate per mese (<code>AGOSTO 2026</code>) e filtrabili con la ricerca per esercizio.</p>
+<table class="gallery">
+<thead><tr><th>Vuoto</th><th>Elenco</th><th>Sessione aperta</th><th>Modifica di una serie</th></tr></thead><tbody>
+<tr><td><a href="img/23-storico-vuoto.png" target="_blank"><img src="img/23-storico-vuoto.png" alt=""></a></td><td><a href="img/24-storico.png" target="_blank"><img src="img/24-storico.png" alt=""></a></td><td><a href="img/25-storico-espanso.png" target="_blank"><img src="img/25-storico-espanso.png" alt=""></a></td><td><a href="img/26-storico-modifica.png" target="_blank"><img src="img/26-storico-modifica.png" alt=""></a></td></tr>
+</tbody></table>
+<p><strong>Card chiusa:</strong> giorno della settimana in MAIUSCOLO accento + data, riga &quot;5 esercizi · 14 serie totali&quot;, badge voto (<code>♥ 10/10</code>) e i nomi degli esercizi come chip (con l&#x27;iconcina nota su quelli che ne hanno una).</p>
+<p><strong>Card aperta:</strong> compaiono &quot;Modifica data&quot; e &quot;Aggiungi esercizio&quot;, poi ogni esercizio in un blocco con le sue azioni in riga (progressi, nota, rinomina, aggiungi serie, elimina in rosso) e l&#x27;elenco completo delle serie. Toccando una serie si apre lo stesso sheet di Oggi, già compilato. Lo storico è quindi <strong>completamente modificabile a posteriori</strong>, non è un archivio in sola lettura.</p>
+<hr>
+<h2>7. Progressi</h2>
+<p>Due sotto-schede in un <code>SegmentedToggle</code>: <strong>Grafici</strong> e <strong>Mappa corpo</strong>.</p>
+<h3>7.1 Grafici</h3>
+<table class="gallery">
+<thead><tr><th>Vuoto</th><th>Elenco esercizi</th><th>Peso massimo</th><th>Volume</th></tr></thead><tbody>
+<tr><td><a href="img/27-progressi-vuoto.png" target="_blank"><img src="img/27-progressi-vuoto.png" alt=""></a></td><td><a href="img/28-progressi-lista.png" target="_blank"><img src="img/28-progressi-lista.png" alt=""></a></td><td><a href="img/29-grafico-peso.png" target="_blank"><img src="img/29-grafico-peso.png" alt=""></a></td><td><a href="img/30-grafico-volume.png" target="_blank"><img src="img/30-grafico-volume.png" alt=""></a></td></tr>
+</tbody></table>
+<p>L&#x27;elenco mostra per ogni esercizio il numero di sessioni, il <strong>miglioramento</strong> in verde (<code>↗ +17.5 kg</code>) e il record in un badge accento. Toccandolo si apre la scheda dell&#x27;esercizio con:</p>
+<ul>
+<li>quattro <strong>StatCard</strong> in griglia 2×2: peso massimo, sessioni totali, miglioramento totale (in verde quando è positivo), serie dell&#x27;ultima sessione;</li>
+<li>toggle <strong>Peso massimo / Volume</strong>;</li>
+<li>il grafico: linea curva con area sfumata sotto e pallini sui punti per il peso, barre con gradiente verticale per il volume; griglia sottile, etichette date in <code>dd-MM</code> contate all&#x27;indietro dall&#x27;ultima sessione, così l&#x27;ultima data c&#x27;è sempre ed è distanziata come le altre;</li>
+<li>lista <strong>SESSIONI RECENTI</strong>: <code>22-07 · 77.5 kg max · vol 2155 · 3 serie</code>.</li>
+</ul>
+<h3>7.2 Mappa corpo</h3>
+<p>Due sagome (FRONTE / RETRO) dentro una card, colorate in base alle <strong>serie effettive</strong> per gruppo muscolare nella settimana selezionata (i muscoli secondari contano metà: da qui i &quot;4.5 serie effettive&quot;).</p>
+<table class="gallery">
+<thead><tr><th>Settimana in corso</th><th>Settimana piena</th><th>Legenda ed elenco</th></tr></thead><tbody>
+<tr><td><a href="img/31-mappa-corpo-settimana.png" target="_blank"><img src="img/31-mappa-corpo-settimana.png" alt=""></a></td><td><a href="img/32-mappa-corpo-piena.png" target="_blank"><img src="img/32-mappa-corpo-piena.png" alt=""></a></td><td><a href="img/33-mappa-corpo-legenda.png" target="_blank"><img src="img/33-mappa-corpo-legenda.png" alt=""></a></td></tr>
+</tbody></table>
+<p>Scala: grigio = non allenato, verde <code>#4ADE80</code> = leggero (1-5 serie), ambra <code>#FBBF24</code> = moderato (6-12), rosso <code>#EF4444</code> = intenso (13+). Il corpo &quot;spento&quot; è volutamente poco contrastato, così i muscoli allenati saltano all&#x27;occhio anche di sfuggita. Sopra c&#x27;è il navigatore di settimana (<code>‹ Settimana del 27 lug - 2 ago ›</code>, freccia avanti disabilitata sul futuro), sotto la legenda e l&#x27;elenco di tutti i 12 gruppi muscolari con il conteggio.</p>
+<hr>
+<h2>8. Impostazioni</h2>
+<table class="gallery">
+<thead><tr><th>Aspetto</th><th>Backup e statistiche</th><th>Cartella dati e zona pericolo</th></tr></thead><tbody>
+<tr><td><a href="img/34-impostazioni-aspetto.png" target="_blank"><img src="img/34-impostazioni-aspetto.png" alt=""></a></td><td><a href="img/35-impostazioni-backup.png" target="_blank"><img src="img/35-impostazioni-backup.png" alt=""></a></td><td><a href="img/36-impostazioni-dati.png" target="_blank"><img src="img/36-impostazioni-dati.png" alt=""></a></td></tr>
+</tbody></table>
+<p>La pagina è divisa in tre gruppi con etichetta di sezione (ASPETTO nella prima card, poi ALLENAMENTO e DATI):</p>
+<ol>
+<li><strong>Aspetto</strong> — una sola card con lingua IT/EN, tema Scuro/Chiaro, i 7 riquadri colore (quello attivo con bordo bianco e alone) e formato data GG-MM / MM-GG, separati da divisori sottili. Tutti i toggle sono <code>SegmentedToggle</code>: il segmento attivo è pieno di accento con testo bianco.</li>
+<li><strong>Allenamento</strong> — tre righe di navigazione: <strong>Giorni preimpostati</strong>, <strong>Importa dal blocco note</strong>, <strong>Rivedi il tour</strong> — bordo accento tenue, icona in un quadrato colorato, sottotitolo esplicativo, chevron.</li>
+<li><strong>Dati</strong> — <strong>Backup</strong> (automatico a ogni &quot;Nuovo giorno&quot;, ne tiene 30, stato dell&#x27;ultimo backup, &quot;Crea backup ora&quot; e &quot;Esporta / condividi…&quot;), <strong>Statistiche</strong> (allenamenti totali, esercizi in libreria, serie totali), <strong>Cartella dati</strong> (percorso completo copiabile e spiegazione dei 4 file) e <strong>Zona pericolo</strong> (&quot;Cancella tutti i dati&quot; in rosso su fondo rosso tenue, isolato in fondo alla pagina).</li>
+</ol>
+<p>In basso la versione: <em>GymTracker 2.0</em>.</p>
+<h3>8.1 Giorni preimpostati</h3>
+<table class="gallery">
+<thead><tr><th>Elenco schede</th><th>Editor scheda</th></tr></thead><tbody>
+<tr><td><a href="img/37-schede.png" target="_blank"><img src="img/37-schede.png" alt=""></a></td><td><a href="img/38-scheda-editor.png" target="_blank"><img src="img/38-scheda-editor.png" alt=""></a></td></tr>
+</tbody></table>
+<p>Ogni scheda è una card con nome, matita e cestino, gli esercizi come chip con il proprio recupero (<code>Panca piana ⏱ 1:30</code>) e un bottone <strong>Applica</strong> a piena larghezza. L&#x27;editor ha nome, chip degli esercizi scelti (rimovibili con &quot;×&quot;) e sotto la libreria completa con selezione a spunta.</p>
+<h3>8.2 Importa dal blocco note</h3>
+<p class="figure"><a href="img/39-importa.png" target="_blank"><img src="img/39-importa.png" alt="Importa"></a></p>
+<p>Card informativa in cima con il formato accettato (<code>nome esercizio,peso,rep,peso,rep,…</code>, <code>*</code> = con aiuto, <code>peso-drop,rep-rep</code> = drop set) ed esempi, toggle <strong>Incolla testo / Da file</strong>, selettore della data e area di testo monospaziata con placeholder di esempio.</p>
+<hr>
+<h2>9. Temi, accenti e lingua</h2>
+<p>Lo stesso schermo cambia completamente pelle senza cambiare struttura:</p>
+<table class="gallery">
+<thead><tr><th>Chiaro — Oggi</th><th>Chiaro — Impostazioni</th><th>Chiaro — Mappa corpo</th></tr></thead><tbody>
+<tr><td><a href="img/40-tema-chiaro-oggi.png" target="_blank"><img src="img/40-tema-chiaro-oggi.png" alt=""></a></td><td><a href="img/41-tema-chiaro-impostazioni.png" target="_blank"><img src="img/41-tema-chiaro-impostazioni.png" alt=""></a></td><td><a href="img/42-tema-chiaro-mappa.png" target="_blank"><img src="img/42-tema-chiaro-mappa.png" alt=""></a></td></tr>
+</tbody></table>
+<table class="gallery">
+<thead><tr><th>Accento Smeraldo</th><th>Interfaccia in inglese</th></tr></thead><tbody>
+<tr><td><a href="img/43-accento-smeraldo.png" target="_blank"><img src="img/43-accento-smeraldo.png" alt=""></a></td><td><a href="img/44-lingua-inglese.png" target="_blank"><img src="img/44-lingua-inglese.png" alt=""></a></td></tr>
+</tbody></table>
+<p>Nel tema chiaro le card diventano bianche su sfondo <code>#F6F6F9</code> e i fondi &quot;tenui&quot; dei bottoni secondari diventano accento molto diluito. L&#x27;accento tocca tutto: bottoni, badge, icone attive, bordi selezionati, grafici, alone dell&#x27;header. Il cambio è immediato su tutte le schede, inclusa la mappa del corpo. La traduzione è totale sull&#x27;UI (i nomi degli esercizi e le note restano ovviamente come li hai scritti).</p>
+<hr>
+<h2>10. Regole che tengono insieme l&#x27;interfaccia</h2>
+<ol>
+<li><strong>Un solo accento per volta</strong>, applicato ovunque; i colori semantici (rosso/verde/ambra/blu) non cambiano mai, così &quot;distruttivo&quot; e &quot;aiuto&quot; restano riconoscibili con qualunque tema.</li>
+<li><strong>Niente ombre.</strong> La gerarchia è fatta con 4 livelli di superficie e bordi sottili.</li>
+<li><strong>Stessa testata ovunque.</strong> Le cinque schede si aprono tutte con <code>PageHeader</code>: cambia il contenuto, non la struttura, e il titolo dice sempre anche &quot;quanto&quot; (26 esercizi, 25 allenamenti).</li>
+<li><strong>Bersagli grandi.</strong> Righe serie, card e bottoni sono tutti toccabili per intero; le icone piccole esistono solo come azioni secondarie.</li>
+<li><strong>Agire subito, annullare dopo.</strong> Le azioni reversibili non chiedono conferma: si eseguono e lasciano una snackbar con &quot;Annulla&quot;. I dialog di conferma restano solo per ciò che non si può disfare.</li>
+<li><strong>Stati vuoti utili</strong>: icona in un quadrato smussato, frase in <code>kText2</code>, e — dove ha senso — le azioni per uscire dallo stato vuoto.</li>
+<li><strong>Contesto sempre visibile</strong>: ultima sessione e record nello sheet, riepilogo serie nel titolo della card, così non serve navigare per ricordarsi cosa hai fatto la volta prima.</li>
+<li><strong>Sheet per creare/modificare, dialog per decidere.</strong> Le due cose non si mescolano mai.</li>
+<li><strong>Numeri protagonisti</strong>: peso, reps, tempo di recupero, voto e statistiche sono sempre il testo più grande del proprio blocco.</li>
+</ol>
+<hr>
+<h2>11. Cosa è cambiato con il restyling</h2>
+<p>Il documento fotografa l&#x27;app <strong>dopo</strong> l&#x27;intervento su UI e navigazione. In sintesi:</p>
+<ul>
+<li><strong>Testata unica</strong> (<code>PageHeader</code>) e ricerca standard su Oggi, Esercizi, Storico, Progressi, Impostazioni, al posto di AppBar e intestazioni diverse su ogni scheda.</li>
+<li><strong>Toggle segmentato unico</strong> per tutte le scelte a pillola, dove prima c&#x27;erano tab, bottoni e chip diversi.</li>
+<li><strong>Swipe per eliminare una serie</strong> con annullamento, al posto della &quot;×&quot; su ogni riga.</li>
+<li><strong>Scorciatoie ai progressi</strong> dalla card esercizio di Oggi, dal menu della libreria e dallo storico.</li>
+<li><strong>Sheet serie</strong> riscritto: toggle Ultima/Record al posto dello swipe nascosto, card che si dimensiona sul contenuto.</li>
+<li><strong>Impostazioni raggruppate</strong> in Aspetto / Allenamento / Dati.</li>
+<li><strong>Mappa corpo</strong> con più contrasto tra corpo spento e muscoli allenati.</li>
+</ul>
+<p>Difetti trovati durante la ricognizione e <strong>risolti</strong>:</p>
+<ul>
+<li>overflow di 11px nella card &quot;ULTIMA VOLTA&quot; dello sheet serie;</li>
+<li>la mappa del corpo restava col fondo del tema vecchio finché non si riavviava l&#x27;app;</li>
+<li>la snackbar &quot;Annulla&quot; finiva sotto al FAB &quot;+ Esercizio&quot;: i due bersagli si sovrapponevano e, se la snackbar spariva un istante prima del tocco, si apriva il selettore esercizi;</li>
+<li>etichette delle date sovrapposte sul bordo destro dei grafici (&quot;15-0722-07&quot;);</li>
+<li>nel drop set: &quot;+&quot; doppio sul bottone &quot;Aggiungi drop&quot; ed etichette dei campi troncate.</li>
+</ul>
+</div></body></html>

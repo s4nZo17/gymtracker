@@ -1,0 +1,3529 @@
+[
+  {
+    "date": "2026-06-01",
+    "exercises": [
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 60.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 70.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 75.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 75.0,
+            "reps": "6",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Panca inclinata manubri",
+        "series": [
+          {
+            "weight": 22.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 24.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 26.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Croci ai cavi",
+        "series": [
+          {
+            "weight": 15.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 15.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Alzate laterali",
+        "series": [
+          {
+            "weight": 8.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 10.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 10.0,
+            "reps": "12",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 7.0,
+                "reps": "10"
+              },
+              {
+                "weight": 5.0,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Pushdown cavo",
+        "series": [
+          {
+            "weight": 25.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 30.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 30.0,
+            "reps": "10",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 21.0,
+                "reps": "10"
+              },
+              {
+                "weight": 15.0,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 8
+  },
+  {
+    "date": "2026-06-03",
+    "exercises": [
+      {
+        "name": "Lat machine avanti",
+        "series": [
+          {
+            "weight": 50.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 55.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 60.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Pulley basso",
+        "series": [
+          {
+            "weight": 45.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 50.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 50.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Rematore manubrio",
+        "series": [
+          {
+            "weight": 26.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 28.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 75
+      },
+      {
+        "name": "Curl bilanciere",
+        "series": [
+          {
+            "weight": 25.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 30.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 30.0,
+            "reps": "8",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Curl manubri alternato",
+        "series": [
+          {
+            "weight": 12.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 12.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 7
+  },
+  {
+    "date": "2026-06-05",
+    "exercises": [
+      {
+        "name": "Squat bilanciere",
+        "series": [
+          {
+            "weight": 70.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 80.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 90.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 90.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg press",
+        "series": [
+          {
+            "weight": 120.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 140.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 160.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg curl",
+        "series": [
+          {
+            "weight": 35.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 40.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 40.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Stacchi rumeni",
+        "series": [
+          {
+            "weight": 60.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 70.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Crunch machine",
+        "series": [
+          {
+            "weight": 30.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 35.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 45
+      }
+    ],
+    "rating": 9
+  },
+  {
+    "date": "2026-06-08",
+    "exercises": [
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 62.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 72.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 77.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 77.5,
+            "reps": "6",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Panca inclinata manubri",
+        "series": [
+          {
+            "weight": 23.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 25.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 27.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Croci ai cavi",
+        "series": [
+          {
+            "weight": 16.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 16.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Alzate laterali",
+        "series": [
+          {
+            "weight": 9.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 11.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 11.0,
+            "reps": "12",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 7.7,
+                "reps": "10"
+              },
+              {
+                "weight": 5.5,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Pushdown cavo",
+        "series": [
+          {
+            "weight": 26.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 31.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 31.0,
+            "reps": "10",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 21.7,
+                "reps": "10"
+              },
+              {
+                "weight": 15.5,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 6,
+    "templateId": "t_push",
+    "templateName": "Push Day"
+  },
+  {
+    "date": "2026-06-10",
+    "exercises": [
+      {
+        "name": "Lat machine avanti",
+        "series": [
+          {
+            "weight": 52.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 57.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 62.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Pulley basso",
+        "series": [
+          {
+            "weight": 46.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 52.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 52.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Rematore manubrio",
+        "series": [
+          {
+            "weight": 27.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 29.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 75
+      },
+      {
+        "name": "Curl bilanciere",
+        "series": [
+          {
+            "weight": 26.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 31.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 31.0,
+            "reps": "8",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Curl manubri alternato",
+        "series": [
+          {
+            "weight": 13.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 13.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 6,
+    "templateId": "t_pull",
+    "templateName": "Pull Day"
+  },
+  {
+    "date": "2026-06-12",
+    "exercises": [
+      {
+        "name": "Squat bilanciere",
+        "series": [
+          {
+            "weight": 72.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 82.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 92.5,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 92.5,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg press",
+        "series": [
+          {
+            "weight": 122.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 142.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 162.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg curl",
+        "series": [
+          {
+            "weight": 36.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 41.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 41.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Stacchi rumeni",
+        "series": [
+          {
+            "weight": 62.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 72.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Crunch machine",
+        "series": [
+          {
+            "weight": 31.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 36.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 45
+      }
+    ],
+    "rating": 10,
+    "templateId": "t_legs",
+    "templateName": "Leg Day"
+  },
+  {
+    "date": "2026-06-15",
+    "exercises": [
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 65.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 75.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 80.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 80.0,
+            "reps": "6",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Panca inclinata manubri",
+        "series": [
+          {
+            "weight": 24.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 26.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 28.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Croci ai cavi",
+        "series": [
+          {
+            "weight": 17.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 17.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Alzate laterali",
+        "series": [
+          {
+            "weight": 10.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 12.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 12.0,
+            "reps": "12",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 8.4,
+                "reps": "10"
+              },
+              {
+                "weight": 6.0,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Pushdown cavo",
+        "series": [
+          {
+            "weight": 27.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 32.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 32.0,
+            "reps": "10",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 22.4,
+                "reps": "10"
+              },
+              {
+                "weight": 16.0,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 6,
+    "templateId": "t_push",
+    "templateName": "Push Day"
+  },
+  {
+    "date": "2026-06-17",
+    "exercises": [
+      {
+        "name": "Lat machine avanti",
+        "series": [
+          {
+            "weight": 55.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 60.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 65.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Pulley basso",
+        "series": [
+          {
+            "weight": 47.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 55.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 55.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Rematore manubrio",
+        "series": [
+          {
+            "weight": 28.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 30.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 75
+      },
+      {
+        "name": "Curl bilanciere",
+        "series": [
+          {
+            "weight": 27.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 32.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 32.0,
+            "reps": "8",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Curl manubri alternato",
+        "series": [
+          {
+            "weight": 14.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 14.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 8,
+    "templateId": "t_pull",
+    "templateName": "Pull Day"
+  },
+  {
+    "date": "2026-06-19",
+    "exercises": [
+      {
+        "name": "Squat bilanciere",
+        "series": [
+          {
+            "weight": 75.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 85.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 95.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 95.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg press",
+        "series": [
+          {
+            "weight": 125.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 145.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 165.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg curl",
+        "series": [
+          {
+            "weight": 37.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 42.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 42.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Stacchi rumeni",
+        "series": [
+          {
+            "weight": 65.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 75.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Crunch machine",
+        "series": [
+          {
+            "weight": 32.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 37.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 45
+      }
+    ],
+    "rating": 10,
+    "templateId": "t_legs",
+    "templateName": "Leg Day"
+  },
+  {
+    "date": "2026-06-22",
+    "exercises": [
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 67.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 77.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 82.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 82.5,
+            "reps": "6",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Panca inclinata manubri",
+        "series": [
+          {
+            "weight": 25.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 27.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 29.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Croci ai cavi",
+        "series": [
+          {
+            "weight": 18.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 18.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Alzate laterali",
+        "series": [
+          {
+            "weight": 11.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 13.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 13.0,
+            "reps": "12",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 9.1,
+                "reps": "10"
+              },
+              {
+                "weight": 6.5,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Pushdown cavo",
+        "series": [
+          {
+            "weight": 28.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 33.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 33.0,
+            "reps": "10",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 23.1,
+                "reps": "10"
+              },
+              {
+                "weight": 16.5,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 6,
+    "templateId": "t_push",
+    "templateName": "Push Day"
+  },
+  {
+    "date": "2026-06-24",
+    "exercises": [
+      {
+        "name": "Lat machine avanti",
+        "series": [
+          {
+            "weight": 57.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 62.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 67.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Pulley basso",
+        "series": [
+          {
+            "weight": 48.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 57.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 57.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Rematore manubrio",
+        "series": [
+          {
+            "weight": 29.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 31.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 75
+      },
+      {
+        "name": "Curl bilanciere",
+        "series": [
+          {
+            "weight": 28.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 33.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 33.0,
+            "reps": "8",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Curl manubri alternato",
+        "series": [
+          {
+            "weight": 15.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 15.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 10,
+    "templateId": "t_pull",
+    "templateName": "Pull Day"
+  },
+  {
+    "date": "2026-06-26",
+    "exercises": [
+      {
+        "name": "Squat bilanciere",
+        "series": [
+          {
+            "weight": 77.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 87.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 97.5,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 97.5,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg press",
+        "series": [
+          {
+            "weight": 127.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 147.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 167.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg curl",
+        "series": [
+          {
+            "weight": 38.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 43.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 43.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Stacchi rumeni",
+        "series": [
+          {
+            "weight": 67.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 77.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Crunch machine",
+        "series": [
+          {
+            "weight": 33.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 38.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 45
+      }
+    ],
+    "rating": 7,
+    "templateId": "t_legs",
+    "templateName": "Leg Day"
+  },
+  {
+    "date": "2026-06-29",
+    "exercises": [
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 70.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 80.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 85.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 85.0,
+            "reps": "6",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Panca inclinata manubri",
+        "series": [
+          {
+            "weight": 26.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 28.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 30.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Croci ai cavi",
+        "series": [
+          {
+            "weight": 19.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 19.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Alzate laterali",
+        "series": [
+          {
+            "weight": 12.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 14.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 14.0,
+            "reps": "12",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 9.8,
+                "reps": "10"
+              },
+              {
+                "weight": 7.0,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Pushdown cavo",
+        "series": [
+          {
+            "weight": 29.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 34.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 34.0,
+            "reps": "10",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 23.8,
+                "reps": "10"
+              },
+              {
+                "weight": 17.0,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 6,
+    "templateId": "t_push",
+    "templateName": "Push Day"
+  },
+  {
+    "date": "2026-07-01",
+    "exercises": [
+      {
+        "name": "Lat machine avanti",
+        "series": [
+          {
+            "weight": 60.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 65.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 70.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Pulley basso",
+        "series": [
+          {
+            "weight": 49.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 60.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 60.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Rematore manubrio",
+        "series": [
+          {
+            "weight": 30.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 32.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 75
+      },
+      {
+        "name": "Curl bilanciere",
+        "series": [
+          {
+            "weight": 29.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 34.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 34.0,
+            "reps": "8",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Curl manubri alternato",
+        "series": [
+          {
+            "weight": 16.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 16.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 6,
+    "templateId": "t_pull",
+    "templateName": "Pull Day"
+  },
+  {
+    "date": "2026-07-03",
+    "exercises": [
+      {
+        "name": "Squat bilanciere",
+        "series": [
+          {
+            "weight": 80.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 90.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 100.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 100.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg press",
+        "series": [
+          {
+            "weight": 130.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 150.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 170.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg curl",
+        "series": [
+          {
+            "weight": 39.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 44.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 44.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Stacchi rumeni",
+        "series": [
+          {
+            "weight": 70.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 80.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Crunch machine",
+        "series": [
+          {
+            "weight": 34.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 39.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 45
+      }
+    ],
+    "rating": 9,
+    "templateId": "t_legs",
+    "templateName": "Leg Day"
+  },
+  {
+    "date": "2026-07-06",
+    "exercises": [
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 72.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 82.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 87.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 87.5,
+            "reps": "6",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "note": "Buona spinta, petto scarico",
+        "restSeconds": 90
+      },
+      {
+        "name": "Panca inclinata manubri",
+        "series": [
+          {
+            "weight": 27.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 29.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 31.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Croci ai cavi",
+        "series": [
+          {
+            "weight": 20.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 20.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Alzate laterali",
+        "series": [
+          {
+            "weight": 13.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 15.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 15.0,
+            "reps": "12",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 10.5,
+                "reps": "10"
+              },
+              {
+                "weight": 7.5,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Pushdown cavo",
+        "series": [
+          {
+            "weight": 30.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 35.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 35.0,
+            "reps": "10",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 24.5,
+                "reps": "10"
+              },
+              {
+                "weight": 17.5,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 9,
+    "templateId": "t_push",
+    "templateName": "Push Day"
+  },
+  {
+    "date": "2026-07-08",
+    "exercises": [
+      {
+        "name": "Lat machine avanti",
+        "series": [
+          {
+            "weight": 62.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 67.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 72.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "note": "Presa larga",
+        "restSeconds": 90
+      },
+      {
+        "name": "Pulley basso",
+        "series": [
+          {
+            "weight": 50.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 62.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 62.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Rematore manubrio",
+        "series": [
+          {
+            "weight": 31.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 33.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 75
+      },
+      {
+        "name": "Curl bilanciere",
+        "series": [
+          {
+            "weight": 30.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 35.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 35.0,
+            "reps": "8",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Curl manubri alternato",
+        "series": [
+          {
+            "weight": 17.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 17.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 6,
+    "templateId": "t_pull",
+    "templateName": "Pull Day"
+  },
+  {
+    "date": "2026-07-10",
+    "exercises": [
+      {
+        "name": "Squat bilanciere",
+        "series": [
+          {
+            "weight": 82.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 92.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 102.5,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 102.5,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "note": "Attenzione alla profondita",
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg press",
+        "series": [
+          {
+            "weight": 132.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 152.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 172.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg curl",
+        "series": [
+          {
+            "weight": 40.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 45.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 45.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Stacchi rumeni",
+        "series": [
+          {
+            "weight": 72.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 82.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Crunch machine",
+        "series": [
+          {
+            "weight": 35.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 40.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 45
+      }
+    ],
+    "rating": 7,
+    "templateId": "t_legs",
+    "templateName": "Leg Day"
+  },
+  {
+    "date": "2026-07-13",
+    "exercises": [
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 75.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 85.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 90.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 90.0,
+            "reps": "6",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "note": "Buona spinta, petto scarico",
+        "restSeconds": 90
+      },
+      {
+        "name": "Panca inclinata manubri",
+        "series": [
+          {
+            "weight": 28.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 30.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 32.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Croci ai cavi",
+        "series": [
+          {
+            "weight": 21.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 21.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Alzate laterali",
+        "series": [
+          {
+            "weight": 14.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 16.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 16.0,
+            "reps": "12",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 11.2,
+                "reps": "10"
+              },
+              {
+                "weight": 8.0,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Pushdown cavo",
+        "series": [
+          {
+            "weight": 31.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 36.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 36.0,
+            "reps": "10",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 25.2,
+                "reps": "10"
+              },
+              {
+                "weight": 18.0,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 6,
+    "templateId": "t_push",
+    "templateName": "Push Day"
+  },
+  {
+    "date": "2026-07-15",
+    "exercises": [
+      {
+        "name": "Lat machine avanti",
+        "series": [
+          {
+            "weight": 65.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 70.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 75.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "note": "Presa larga",
+        "restSeconds": 90
+      },
+      {
+        "name": "Pulley basso",
+        "series": [
+          {
+            "weight": 51.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 65.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 65.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Rematore manubrio",
+        "series": [
+          {
+            "weight": 32.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 34.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 75
+      },
+      {
+        "name": "Curl bilanciere",
+        "series": [
+          {
+            "weight": 31.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 36.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 36.0,
+            "reps": "8",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Curl manubri alternato",
+        "series": [
+          {
+            "weight": 18.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 18.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 10,
+    "templateId": "t_pull",
+    "templateName": "Pull Day"
+  },
+  {
+    "date": "2026-07-17",
+    "exercises": [
+      {
+        "name": "Squat bilanciere",
+        "series": [
+          {
+            "weight": 85.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 95.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 105.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 105.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "note": "Attenzione alla profondita",
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg press",
+        "series": [
+          {
+            "weight": 135.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 155.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 175.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg curl",
+        "series": [
+          {
+            "weight": 41.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 46.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 46.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Stacchi rumeni",
+        "series": [
+          {
+            "weight": 75.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 85.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Crunch machine",
+        "series": [
+          {
+            "weight": 36.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 41.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 45
+      }
+    ],
+    "rating": 9,
+    "templateId": "t_legs",
+    "templateName": "Leg Day"
+  },
+  {
+    "date": "2026-07-20",
+    "exercises": [
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 77.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 87.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 92.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 92.5,
+            "reps": "6",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "note": "Buona spinta, petto scarico",
+        "restSeconds": 90
+      },
+      {
+        "name": "Panca inclinata manubri",
+        "series": [
+          {
+            "weight": 29.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 31.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 33.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Croci ai cavi",
+        "series": [
+          {
+            "weight": 22.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 22.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Alzate laterali",
+        "series": [
+          {
+            "weight": 15.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 17.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 17.0,
+            "reps": "12",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 11.9,
+                "reps": "10"
+              },
+              {
+                "weight": 8.5,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Pushdown cavo",
+        "series": [
+          {
+            "weight": 32.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 37.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 37.0,
+            "reps": "10",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 25.9,
+                "reps": "10"
+              },
+              {
+                "weight": 18.5,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 6,
+    "templateId": "t_push",
+    "templateName": "Push Day"
+  },
+  {
+    "date": "2026-07-22",
+    "exercises": [
+      {
+        "name": "Lat machine avanti",
+        "series": [
+          {
+            "weight": 67.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 72.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 77.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "note": "Presa larga",
+        "restSeconds": 90
+      },
+      {
+        "name": "Pulley basso",
+        "series": [
+          {
+            "weight": 52.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 67.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 67.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Rematore manubrio",
+        "series": [
+          {
+            "weight": 33.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 35.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 75
+      },
+      {
+        "name": "Curl bilanciere",
+        "series": [
+          {
+            "weight": 32.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 37.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 37.0,
+            "reps": "8",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Curl manubri alternato",
+        "series": [
+          {
+            "weight": 19.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 19.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "rating": 10,
+    "templateId": "t_pull",
+    "templateName": "Pull Day"
+  },
+  {
+    "date": "2026-07-24",
+    "exercises": [
+      {
+        "name": "Squat bilanciere",
+        "series": [
+          {
+            "weight": 87.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 97.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 107.5,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 107.5,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "note": "Attenzione alla profondita",
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg press",
+        "series": [
+          {
+            "weight": 137.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 157.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 177.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Leg curl",
+        "series": [
+          {
+            "weight": 42.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 47.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 47.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Stacchi rumeni",
+        "series": [
+          {
+            "weight": 77.5,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 87.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Crunch machine",
+        "series": [
+          {
+            "weight": 37.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 42.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 45
+      }
+    ],
+    "rating": 6,
+    "templateId": "t_legs",
+    "templateName": "Leg Day"
+  },
+  {
+    "date": "2026-08-02",
+    "exercises": [
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 85.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 85.0,
+            "reps": "6",
+            "type": "help",
+            "drops": []
+          }
+        ],
+        "note": "Oggi spinta forte",
+        "restSeconds": 90
+      },
+      {
+        "name": "Panca inclinata manubri",
+        "series": [
+          {
+            "weight": 28.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 30.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Alzate laterali",
+        "series": [
+          {
+            "weight": 12.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 14.0,
+            "reps": "12",
+            "type": "drop",
+            "drops": [
+              {
+                "weight": 10.0,
+                "reps": "10"
+              },
+              {
+                "weight": 7.0,
+                "reps": "8"
+              }
+            ]
+          }
+        ],
+        "restSeconds": 60
+      },
+      {
+        "name": "Pushdown cavo",
+        "series": [],
+        "restSeconds": 60
+      }
+    ],
+    "templateId": "t_push",
+    "templateName": "Push Day"
+  },
+  {
+    "date": "2026-07-27",
+    "exercises": [
+      {
+        "name": "Squat bilanciere",
+        "series": [
+          {
+            "weight": 80.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 90.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 95.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 55.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 60.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 60.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Lat machine avanti",
+        "series": [
+          {
+            "weight": 50.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 55.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Plank",
+        "series": [
+          {
+            "weight": 0.0,
+            "reps": "60s",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "templateId": "t_full",
+    "templateName": "Full Body express"
+  },
+  {
+    "date": "2026-08-05",
+    "exercises": [
+      {
+        "name": "Squat bilanciere",
+        "series": [
+          {
+            "weight": 80.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 90.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 95.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 57.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 62.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 62.5,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Lat machine avanti",
+        "series": [
+          {
+            "weight": 50.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 55.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Plank",
+        "series": [
+          {
+            "weight": 0.0,
+            "reps": "60s",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "templateId": "t_full",
+    "templateName": "Full Body express"
+  },
+  {
+    "date": "2026-08-19",
+    "exercises": [
+      {
+        "name": "Squat bilanciere",
+        "series": [
+          {
+            "weight": 80.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 90.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 95.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 120
+      },
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 57.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 62.5,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 62.5,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Lat machine avanti",
+        "series": [
+          {
+            "weight": 55.0,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 60.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Plank",
+        "series": [
+          {
+            "weight": 0.0,
+            "reps": "60s",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      }
+    ],
+    "templateId": "t_full",
+    "templateName": "Full Body express"
+  },
+  {
+    "date": "2026-08-12",
+    "exercises": [
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 77.5,
+            "reps": "10",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 80.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 82.5,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 82.5,
+            "reps": "5",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90
+      },
+      {
+        "name": "Alzate laterali",
+        "series": [
+          {
+            "weight": 10.0,
+            "reps": "15",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 12.0,
+            "reps": "12",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 60
+      }
+    ]
+  },
+  {
+    "date": "2026-08-27",
+    "exercises": [
+      {
+        "name": "Panca piana",
+        "series": [
+          {
+            "weight": 85.0,
+            "reps": "8",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 85.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 85.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 85.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          },
+          {
+            "weight": 85.0,
+            "reps": "6",
+            "type": "normal",
+            "drops": []
+          }
+        ],
+        "restSeconds": 90,
+        "targetSeries": 4
+      },
+      {
+        "name": "Panca inclinata manubri",
+        "series": [],
+        "restSeconds": 90,
+        "targetSeries": 3
+      },
+      {
+        "name": "Croci ai cavi",
+        "series": [],
+        "restSeconds": 60,
+        "targetSeries": 3
+      },
+      {
+        "name": "Alzate laterali",
+        "series": [],
+        "restSeconds": 60,
+        "targetSeries": 4
+      },
+      {
+        "name": "Pushdown cavo",
+        "series": [],
+        "restSeconds": 60,
+        "targetSeries": 3
+      }
+    ],
+    "templateId": "t_push",
+    "templateName": "Push Day"
+  }
+]

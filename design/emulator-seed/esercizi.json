@@ -1,0 +1,282 @@
+[
+  {
+    "id": "default_0",
+    "name": "Panca piana",
+    "category": "Petto",
+    "primaryMuscles": [
+      "chest"
+    ],
+    "secondaryMuscles": [
+      "triceps",
+      "shoulders"
+    ]
+  },
+  {
+    "id": "default_1",
+    "name": "Panca inclinata manubri",
+    "category": "Petto",
+    "primaryMuscles": [
+      "chest"
+    ],
+    "secondaryMuscles": [
+      "shoulders",
+      "triceps"
+    ]
+  },
+  {
+    "id": "default_2",
+    "name": "Chest press",
+    "category": "Petto",
+    "primaryMuscles": [
+      "chest"
+    ],
+    "secondaryMuscles": [
+      "triceps",
+      "shoulders"
+    ]
+  },
+  {
+    "id": "default_3",
+    "name": "Croci ai cavi",
+    "category": "Petto",
+    "primaryMuscles": [
+      "chest"
+    ],
+    "secondaryMuscles": [
+      "shoulders"
+    ]
+  },
+  {
+    "id": "default_4",
+    "name": "Lat machine avanti",
+    "category": "Schiena",
+    "primaryMuscles": [
+      "lats"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "upper_back"
+    ]
+  },
+  {
+    "id": "default_5",
+    "name": "Pulley basso",
+    "category": "Schiena",
+    "primaryMuscles": [
+      "lats"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "upper_back"
+    ]
+  },
+  {
+    "id": "default_6",
+    "name": "Rematore manubrio",
+    "category": "Schiena",
+    "primaryMuscles": [
+      "lats"
+    ],
+    "secondaryMuscles": [
+      "biceps",
+      "upper_back"
+    ]
+  },
+  {
+    "id": "default_7",
+    "name": "Pulldown presa stretta",
+    "category": "Schiena",
+    "primaryMuscles": [
+      "lats"
+    ],
+    "secondaryMuscles": [
+      "biceps"
+    ]
+  },
+  {
+    "id": "default_8",
+    "name": "Squat bilanciere",
+    "category": "Gambe",
+    "primaryMuscles": [
+      "quads",
+      "glutes"
+    ],
+    "secondaryMuscles": [
+      "hamstrings",
+      "abs"
+    ]
+  },
+  {
+    "id": "default_9",
+    "name": "Leg press",
+    "category": "Gambe",
+    "primaryMuscles": [
+      "quads",
+      "glutes"
+    ],
+    "secondaryMuscles": [
+      "hamstrings"
+    ]
+  },
+  {
+    "id": "default_10",
+    "name": "Affondi camminati",
+    "category": "Gambe",
+    "primaryMuscles": [
+      "quads",
+      "glutes"
+    ],
+    "secondaryMuscles": [
+      "hamstrings"
+    ]
+  },
+  {
+    "id": "default_11",
+    "name": "Leg extension",
+    "category": "Gambe",
+    "primaryMuscles": [
+      "quads"
+    ],
+    "secondaryMuscles": []
+  },
+  {
+    "id": "default_12",
+    "name": "Leg curl",
+    "category": "Gambe",
+    "primaryMuscles": [
+      "hamstrings"
+    ],
+    "secondaryMuscles": []
+  },
+  {
+    "id": "default_13",
+    "name": "Stacchi rumeni",
+    "category": "Gambe",
+    "primaryMuscles": [
+      "hamstrings",
+      "glutes"
+    ],
+    "secondaryMuscles": [
+      "lats"
+    ]
+  },
+  {
+    "id": "default_14",
+    "name": "Military press",
+    "category": "Spalle",
+    "primaryMuscles": [
+      "shoulders"
+    ],
+    "secondaryMuscles": [
+      "triceps"
+    ]
+  },
+  {
+    "id": "default_15",
+    "name": "Alzate laterali",
+    "category": "Spalle",
+    "primaryMuscles": [
+      "shoulders"
+    ],
+    "secondaryMuscles": []
+  },
+  {
+    "id": "default_16",
+    "name": "Rear delts machine",
+    "category": "Spalle",
+    "primaryMuscles": [
+      "shoulders"
+    ],
+    "secondaryMuscles": [
+      "upper_back"
+    ]
+  },
+  {
+    "id": "default_17",
+    "name": "Curl bilanciere",
+    "category": "Bicipiti",
+    "primaryMuscles": [
+      "biceps"
+    ],
+    "secondaryMuscles": [
+      "forearms"
+    ]
+  },
+  {
+    "id": "default_18",
+    "name": "Curl manubri alternato",
+    "category": "Bicipiti",
+    "primaryMuscles": [
+      "biceps"
+    ],
+    "secondaryMuscles": [
+      "forearms"
+    ]
+  },
+  {
+    "id": "default_19",
+    "name": "Curl cavo basso",
+    "category": "Bicipiti",
+    "primaryMuscles": [
+      "biceps"
+    ],
+    "secondaryMuscles": []
+  },
+  {
+    "id": "default_20",
+    "name": "Pushdown cavo",
+    "category": "Tricipiti",
+    "primaryMuscles": [
+      "triceps"
+    ],
+    "secondaryMuscles": []
+  },
+  {
+    "id": "default_21",
+    "name": "French press",
+    "category": "Tricipiti",
+    "primaryMuscles": [
+      "triceps"
+    ],
+    "secondaryMuscles": []
+  },
+  {
+    "id": "default_22",
+    "name": "Dip alle parallele",
+    "category": "Tricipiti",
+    "primaryMuscles": [
+      "triceps"
+    ],
+    "secondaryMuscles": [
+      "chest",
+      "shoulders"
+    ]
+  },
+  {
+    "id": "default_23",
+    "name": "Crunch machine",
+    "category": "Core",
+    "primaryMuscles": [
+      "abs"
+    ],
+    "secondaryMuscles": []
+  },
+  {
+    "id": "default_24",
+    "name": "Plank",
+    "category": "Core",
+    "primaryMuscles": [
+      "abs"
+    ],
+    "secondaryMuscles": []
+  },
+  {
+    "id": "default_25",
+    "name": "Hanging leg raise",
+    "category": "Core",
+    "primaryMuscles": [
+      "abs"
+    ],
+    "secondaryMuscles": []
+  }
+]

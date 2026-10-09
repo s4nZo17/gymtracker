@@ -1,4 +1,8 @@
-﻿// lib/screens/progress_screen.dart
+// lib/screens/progress_screen.dart
+//
+// Progressi 2.0: al posto di ricerca + menu a tendina c'e una lista di
+// esercizi filtrabile: tocchi l'esercizio e vedi subito i grafici.
+// Stessi dati e stessi grafici della v1 (peso max, volume, sessioni recenti).
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +12,7 @@ import '../services/app_state.dart';
 import '../theme.dart';
 import '../l10n/strings.dart';
 import '../widgets/widgets.dart';
+import 'body_map_screen.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -16,110 +21,258 @@ class ProgressScreen extends StatefulWidget {
   State<ProgressScreen> createState() => _ProgressScreenState();
 }
 
-class _ProgressScreenState extends State<ProgressScreen> {
-  String? _selectedEx;
+class _ProgressScreenState extends State<ProgressScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _mainTab;
   String _search = '';
+  int _tabIndex = 0;
 
-  bool _matchesSearch(String name, String term) {
-    final cleanTerm = term.trim().toLowerCase();
-    if (cleanTerm.isEmpty) return true;
-    return name.toLowerCase().contains(cleanTerm);
+  @override
+  void initState() {
+    super.initState();
+    _mainTab = TabController(length: 2, vsync: this);
+    _mainTab.addListener(() {
+      if (_mainTab.index != _tabIndex && mounted) {
+        setState(() => _tabIndex = _mainTab.index);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _mainTab.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: kBg,
+      body: Column(
+        children: [
+          PageHeader(
+            title: S.get('progress'),
+            bottom: SegmentedToggle(
+              labels: [S.get('charts'), S.get('body_map')],
+              selected: _tabIndex,
+              onChanged: (i) {
+                setState(() => _tabIndex = i);
+                _mainTab.animateTo(i);
+              },
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _mainTab,
+              children: [
+                _buildExerciseList(),
+                const BodyMapScreen(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExerciseList() {
     return Consumer<AppState>(
       builder: (context, state, _) {
         final exNames = state.allExerciseNames;
-        final filteredNames = exNames.where((name) => _matchesSearch(name, _search)).toList();
+        final term = _search.trim().toLowerCase();
+        final filteredNames = term.isEmpty
+            ? exNames
+            : exNames.where((n) => n.toLowerCase().contains(term)).toList();
 
-        if (_selectedEx != null && !exNames.contains(_selectedEx)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            setState(() => _selectedEx = null);
-          });
+        if (exNames.isEmpty) {
+          return EmptyState(
+            icon: Icons.show_chart,
+            title: S.get('no_data_yet'),
+            subtitle: S.get('no_data_yet_sub'),
+          );
         }
 
-        final selectedEx = filteredNames.contains(_selectedEx) ? _selectedEx : null;
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(kGapPage, 6, kGapPage, 4),
+              child: AppSearchField(
+                hint: S.get('search_exercise'),
+                value: _search,
+                onChanged: (value) => setState(() => _search = value),
+              ),
+            ),
+            Expanded(
+              child: filteredNames.isEmpty
+                  ? EmptyState(
+                      icon: Icons.search_off,
+                      title: S.get('no_results'),
+                      subtitle: S.get('try_other_search'),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.only(
+                          top: 8, bottom: kBottomSafeSpace),
+                      itemCount: filteredNames.length,
+                      itemBuilder: (context, i) {
+                        final name = filteredNames[i];
+                        final data = state.getProgressData(name);
+                        final lastW = data.isNotEmpty
+                            ? data.last['maxWeight'] as double
+                            : null;
+                        final firstW = data.isNotEmpty
+                            ? data.first['maxWeight'] as double
+                            : null;
+                        final delta = (lastW != null && firstW != null)
+                            ? lastW - firstW
+                            : 0.0;
 
-        return Scaffold(
-          backgroundColor: kBg,
-          appBar: AppBar(title: Text(S.get('progress'))),
-          body: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                child: TextField(
-                  onChanged: (value) {
-                    setState(() {
-                      _search = value;
-                      if (_selectedEx != null && !_matchesSearch(_selectedEx!, value)) {
-                        _selectedEx = null;
-                      }
-                    });
-                  },
-                  decoration: InputDecoration(
-                    hintText: S.get('search_exercise'),
-                    prefixIcon: Icon(Icons.search, color: kText3),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: kSurface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: kSurface3),
-                  ),
-                  child: DropdownButton<String>(
-                    value: selectedEx,
-                    hint: Text(S.get('select_exercise'), style: TextStyle(color: kText2)),
-                    isExpanded: true,
-                    underline: const SizedBox(),
-                    dropdownColor: kSurface,
-                    items: filteredNames.map((n) => DropdownMenuItem(
-                      value: n,
-                      child: Text(n, style: TextStyle(color: kText)),
-                    )).toList(),
-                    onChanged: (v) => setState(() => _selectedEx = v),
-                  ),
-                ),
-              ),
-              if (selectedEx == null)
-                Expanded(
-                  child: exNames.isEmpty
-                      ? EmptyState(emoji: '', title: S.get('no_data_yet'))
-                      : filteredNames.isEmpty
-                          ? EmptyState(emoji: '', title: S.get('no_exercise_found'))
-                      : EmptyState(emoji: '', title: S.get('select_to_see')),
-                )
-              else
-                Expanded(child: _ChartContent(exName: selectedEx)),
-            ],
-          ),
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: kGapPage, vertical: 3),
+                          child: AppCard(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 13),
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    ExerciseProgressScreen(exName: name),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: kText),
+                                      ),
+                                      if (data.isNotEmpty) ...[
+                                        const SizedBox(height: 3),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              '${data.length} ${S.get('total_sessions').toLowerCase()}',
+                                              style: TextStyle(
+                                                  fontSize: 12, color: kText2),
+                                            ),
+                                            if (delta.abs() > 0.01) ...[
+                                              Text(' · ',
+                                                  style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: kText3)),
+                                              Icon(
+                                                delta > 0
+                                                    ? Icons.trending_up
+                                                    : Icons.trending_down,
+                                                size: 13,
+                                                color:
+                                                    delta > 0 ? kGreen : kRed,
+                                              ),
+                                              const SizedBox(width: 3),
+                                              Text(
+                                                '${delta > 0 ? '+' : ''}${_fmt(delta)} kg',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color:
+                                                      delta > 0 ? kGreen : kRed,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                if (lastW != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: kAccent.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      '${_fmt(lastW)} kg',
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          color: kAccent,
+                                          fontWeight: FontWeight.w700),
+                                    ),
+                                  ),
+                                const SizedBox(width: 4),
+                                Icon(Icons.chevron_right,
+                                    color: kText3, size: 20),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
         );
       },
     );
   }
 }
 
-class _ChartContent extends StatefulWidget {
-  final String exName;
-  const _ChartContent({required this.exName});
+String _fmt(double v) =>
+    v.toStringAsFixed(v == v.roundToDouble() ? 0 : 1);
 
-  @override
-  State<_ChartContent> createState() => _ChartContentState();
+/// Passo "tondo" per gli assi (1, 2.5, 5, 10, 25, 50, 100...): senza questo
+/// fl_chart sceglieva valori come 236 o 11.5 e le etichette si accavallavano.
+double _niceInterval(double raw) {
+  if (raw <= 0) return 1;
+  final exp = (math.log(raw) / math.ln10).floor();
+  final magnitude = math.pow(10, exp).toDouble();
+  final norm = raw / magnitude;
+  final step = norm <= 1
+      ? 1.0
+      : norm <= 2
+          ? 2.0
+          : norm <= 2.5
+              ? 2.5
+              : norm <= 5
+                  ? 5.0
+                  : 10.0;
+  return step * magnitude;
 }
 
-class _ChartContentState extends State<_ChartContent> with SingleTickerProviderStateMixin {
+// ─── DETTAGLIO ESERCIZIO ────────────────────────────────────────────────────
+// Pubblica: ci si arriva anche da Oggi, Storico e Libreria.
+
+class ExerciseProgressScreen extends StatefulWidget {
+  final String exName;
+  const ExerciseProgressScreen({super.key, required this.exName});
+
+  @override
+  State<ExerciseProgressScreen> createState() =>
+      _ExerciseProgressScreenState();
+}
+
+class _ExerciseProgressScreenState extends State<ExerciseProgressScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tab;
+  int _chartIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _tab = TabController(length: 2, vsync: this);
+    _tab.addListener(() {
+      if (_tab.index != _chartIndex && mounted) {
+        setState(() => _chartIndex = _tab.index);
+      }
+    });
   }
 
   @override
@@ -129,7 +282,6 @@ class _ChartContentState extends State<_ChartContent> with SingleTickerProviderS
   }
 
   String _formatDateLabel(String isoDate, String dateFormat) {
-    // isoDate = "2026-02-19" -> parts: [2026, 02, 19]
     final parts = isoDate.split('-');
     if (parts.length < 3) return isoDate;
     final mm = parts[1];
@@ -139,126 +291,149 @@ class _ChartContentState extends State<_ChartContent> with SingleTickerProviderS
 
   @override
   Widget build(BuildContext context) {
-    final state = context.read<AppState>();
+    final state = context.watch<AppState>();
     final data = state.getProgressData(widget.exName);
     final dateFmt = state.prefs.dateFormat;
 
-    if (data.isEmpty) {
-      return EmptyState(emoji: '', title: S.get('no_data_for'));
-    }
+    return Scaffold(
+      backgroundColor: kBg,
+      appBar: AppBar(title: Text(widget.exName)),
+      body: data.isEmpty
+          ? EmptyState(icon: Icons.show_chart, title: S.get('no_data_for'))
+          : _buildContent(data, dateFmt),
+    );
+  }
 
-    final maxW = data.map((d) => d['maxWeight'] as double).reduce((a, b) => a > b ? a : b);
+  Widget _buildContent(List<Map<String, dynamic>> data, String dateFmt) {
+    final maxW = data
+        .map((d) => d['maxWeight'] as double)
+        .reduce((a, b) => a > b ? a : b);
     final totalSessions = data.length;
     final lastW = data.last['maxWeight'] as double;
     final firstW = data.first['maxWeight'] as double;
     final improvement = lastW - firstW;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(
+          kGapPage, kGapPage, kGapPage, kBottomSafeSpace),
       child: Column(
         children: [
           Row(
             children: [
-              Expanded(child: StatCard(value: '${maxW.toStringAsFixed(1)} kg', label: S.get('max_weight'))),
+              Expanded(
+                  child: StatCard(
+                      value: '${_fmt(maxW)} kg',
+                      label: S.get('max_weight'))),
               const SizedBox(width: 10),
-              Expanded(child: StatCard(value: '$totalSessions', label: S.get('total_sessions'))),
+              Expanded(
+                  child: StatCard(
+                      value: '$totalSessions',
+                      label: S.get('total_sessions'))),
             ],
           ),
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: StatCard(
-                value: '${improvement >= 0 ? '+' : ''}${improvement.toStringAsFixed(1)} kg',
+              Expanded(
+                  child: StatCard(
+                value:
+                    '${improvement >= 0 ? '+' : ''}${improvement.toStringAsFixed(1)} kg',
                 label: S.get('total_improvement'),
                 valueColor: improvement >= 0 ? kGreen : kRed,
               )),
               const SizedBox(width: 10),
-              Expanded(child: StatCard(
+              Expanded(
+                  child: StatCard(
                 value: '${data.last['series']}',
                 label: S.get('last_session_series'),
               )),
             ],
           ),
           const SizedBox(height: 20),
-
+          SegmentedToggle(
+            labels: [S.get('weight_tab'), S.get('volume_tab')],
+            selected: _chartIndex,
+            onChanged: (i) {
+              setState(() => _chartIndex = i);
+              _tab.animateTo(i);
+            },
+          ),
+          const SizedBox(height: 18),
+          // Il grafico sta dentro una card: cosi' ha un contorno chiaro e le
+          // etichette degli assi non toccano piu' i bordi dello schermo.
           Container(
+            padding: const EdgeInsets.fromLTRB(6, 18, 14, 6),
             decoration: BoxDecoration(
-              color: kSurface2,
-              borderRadius: BorderRadius.circular(12),
+              color: kSurface,
+              borderRadius: BorderRadius.circular(kRadiusCard),
+              border: Border.all(color: kSurface3.withValues(alpha: 0.6)),
             ),
-            child: TabBar(
-              controller: _tab,
-              labelColor: Colors.white,
-              unselectedLabelColor: kText2,
-              indicator: BoxDecoration(
-                color: kAccent,
-                borderRadius: BorderRadius.circular(10),
+            child: SizedBox(
+              height: 232,
+              child: TabBarView(
+                controller: _tab,
+                children: [
+                  _buildWeightChart(data, dateFmt),
+                  _buildVolumeChart(data, dateFmt),
+                ],
               ),
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: Colors.transparent,
-              tabs: [Tab(text: S.get('weight_tab')), Tab(text: S.get('volume_tab'))],
             ),
           ),
-          const SizedBox(height: 16),
-
-          SizedBox(
-            height: 240,
-            child: TabBarView(
-              controller: _tab,
-              children: [
-                _buildWeightChart(data, dateFmt),
-                _buildVolumeChart(data, dateFmt),
-              ],
-            ),
-          ),
-
           const SizedBox(height: 20),
           SectionTitle(S.get('recent_sessions')),
           ...data.reversed.take(8).map((d) => Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: kSurface,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: kSurface3),
-            ),
-            child: Row(
-              children: [
-                Text(
-                  _formatDateLabel(d['date'].toString(), dateFmt),
-                  style: TextStyle(fontSize: 13, color: kText2, fontFamily: 'monospace'),
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: kSurface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: kSurface3.withValues(alpha: 0.6)),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    '${d['maxWeight']} kg max - vol ${(d['totalVolume'] as double).toStringAsFixed(0)}',
-                    style: TextStyle(fontSize: 13, color: kText),
-                  ),
+                child: Row(
+                  children: [
+                    Text(
+                      _formatDateLabel(d['date'].toString(), dateFmt),
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: kText2,
+                          fontFamily: 'monospace'),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '${d['maxWeight']} kg max · vol ${(d['totalVolume'] as double).toStringAsFixed(0)}',
+                        style: TextStyle(fontSize: 13, color: kText),
+                      ),
+                    ),
+                    Text(
+                      '${d['series']} ${S.get('series')}',
+                      style: TextStyle(fontSize: 12, color: kText3),
+                    ),
+                  ],
                 ),
-                Text(
-                  '${d['series']} ${S.get('series')}',
-                  style: TextStyle(fontSize: 12, color: kText3),
-                ),
-              ],
-            ),
-          )),
+              )),
         ],
       ),
     );
   }
 
   Widget _buildWeightChart(List<Map<String, dynamic>> data, String dateFmt) {
-    final spots = data.asMap().entries.map((e) =>
-      FlSpot(e.key.toDouble(), (e.value['maxWeight'] as double))
-    ).toList();
+    final spots = data
+        .asMap()
+        .entries
+        .map((e) => FlSpot(e.key.toDouble(), (e.value['maxWeight'] as double)))
+        .toList();
 
     final weights = data.map((d) => d['maxWeight'] as double).toList();
     final minW = weights.reduce(math.min);
     final maxW = weights.reduce(math.max);
     final range = maxW - minW;
     final padding = range > 0 ? range * 0.15 : maxW * 0.2;
-    final minY = (minW - padding).clamp(0.0, double.infinity);
-    final maxY = maxW + padding;
+    // Assi allineati a valori tondi: l'etichetta piu' in alto non viene piu'
+    // tagliata e quella in basso non si accavalla sulle date.
+    final step = _niceInterval((range > 0 ? range : maxW * 0.4) / 3);
+    final minY = ((minW - padding) / step).floor() * step;
+    final maxY = ((maxW + padding) / step).ceil() * step;
 
     return LineChart(
       LineChartData(
@@ -266,49 +441,82 @@ class _ChartContentState extends State<_ChartContent> with SingleTickerProviderS
         maxY: maxY,
         gridData: FlGridData(
           show: true,
-          getDrawingHorizontalLine: (_) => FlLine(color: kSurface3, strokeWidth: 0.5),
-          getDrawingVerticalLine: (_) => FlLine(color: kSurface3, strokeWidth: 0.5),
+          horizontalInterval: step,
+          getDrawingHorizontalLine: (_) =>
+              FlLine(color: kSurface3.withValues(alpha: 0.5), strokeWidth: 0.5),
+          getDrawingVerticalLine: (_) =>
+              FlLine(color: kSurface3.withValues(alpha: 0.35), strokeWidth: 0.5),
         ),
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              getTitlesWidget: (v, _) {
+              getTitlesWidget: (v, meta) {
                 final i = v.toInt();
                 if (i < 0 || i >= data.length) return const SizedBox();
                 final interval = (data.length / 5).ceil().clamp(1, 10);
-                if (i % interval != 0 && i != data.length - 1) return const SizedBox();
-                return Padding(
-                  padding: const EdgeInsets.only(top: 4),
+                // Si conta all'indietro dall'ultima sessione: cosi' l'ultima
+                // data c'e' sempre ed e' distanziata come le altre. Contando in
+                // avanti e poi forzando l'ultima, le due finali si sovrapponevano
+                // (si leggeva "15-0722-07").
+                if ((data.length - 1 - i) % interval != 0) {
+                  return const SizedBox();
+                }
+                // fitInside tiene l'ultima data dentro al riquadro: prima
+                // veniva tagliata a meta' sul bordo destro.
+                return SideTitleWidget(
+                  axisSide: meta.axisSide,
+                  fitInside: SideTitleFitInsideData.fromTitleMeta(meta,
+                      distanceFromEdge: 0),
+                  space: 6,
                   child: Text(
                     _formatDateLabel(data[i]['date'].toString(), dateFmt),
-                    style: TextStyle(fontSize: 9, color: kText3),
+                    style: TextStyle(fontSize: 10, color: kText3),
                   ),
                 );
               },
-              reservedSize: 22,
+              reservedSize: 24,
             ),
           ),
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              getTitlesWidget: (v, _) => Text('${v.toInt()}', style: TextStyle(fontSize: 9, color: kText3)),
-              reservedSize: 36,
+              interval: step,
+              getTitlesWidget: (v, meta) {
+                // Salta le etichette attaccate ai bordi: sono quelle che
+                // prima si accavallavano con il grafico e con le date.
+                if ((maxY - v) < step * 0.4 || (v - minY) < step * 0.4) {
+                  return const SizedBox();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: Text(_fmt(v),
+                      textAlign: TextAlign.right,
+                      style: TextStyle(fontSize: 10, color: kText3)),
+                );
+              },
+              reservedSize: 40,
             ),
           ),
           topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
         borderData: FlBorderData(show: false),
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
             getTooltipColor: (_) => kSurface2,
-            getTooltipItems: (spots) => spots.map((s) =>
-              LineTooltipItem(
-                '${s.y.toStringAsFixed(1)} kg',
-                TextStyle(color: kAccent, fontWeight: FontWeight.w600, fontSize: 13),
-              ),
-            ).toList(),
+            getTooltipItems: (spots) => spots
+                .map(
+                  (s) => LineTooltipItem(
+                    '${s.y.toStringAsFixed(1)} kg',
+                    TextStyle(
+                        color: kAccent,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13),
+                  ),
+                )
+                .toList(),
           ),
         ),
         lineBarsData: [
@@ -335,7 +543,10 @@ class _ChartContentState extends State<_ChartContent> with SingleTickerProviderS
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [kAccent.withValues(alpha: 0.15), kAccent.withValues(alpha: 0.0)],
+                colors: [
+                  kAccent.withValues(alpha: 0.15),
+                  kAccent.withValues(alpha: 0.0)
+                ],
               ),
             ),
           ),
@@ -347,78 +558,113 @@ class _ChartContentState extends State<_ChartContent> with SingleTickerProviderS
   Widget _buildVolumeChart(List<Map<String, dynamic>> data, String dateFmt) {
     final volumes = data.map((d) => d['totalVolume'] as double).toList();
     final maxV = volumes.reduce(math.max);
-    final maxY = maxV * 1.15;
+    final step = _niceInterval(maxV * 1.15 / 4);
+    final maxY = (maxV * 1.15 / step).ceil() * step;
 
     return BarChart(
       BarChartData(
         maxY: maxY,
         gridData: FlGridData(
           show: true,
-          getDrawingHorizontalLine: (_) => FlLine(color: kSurface3, strokeWidth: 0.5),
+          horizontalInterval: step,
+          getDrawingHorizontalLine: (_) =>
+              FlLine(color: kSurface3.withValues(alpha: 0.5), strokeWidth: 0.5),
           drawVerticalLine: false,
         ),
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              getTitlesWidget: (v, _) {
+              getTitlesWidget: (v, meta) {
                 final i = v.toInt();
                 if (i < 0 || i >= data.length) return const SizedBox();
                 final interval = (data.length / 5).ceil().clamp(1, 10);
-                if (i % interval != 0 && i != data.length - 1) return const SizedBox();
-                return Padding(
-                  padding: const EdgeInsets.only(top: 4),
+                // Si conta all'indietro dall'ultima sessione: cosi' l'ultima
+                // data c'e' sempre ed e' distanziata come le altre. Contando in
+                // avanti e poi forzando l'ultima, le due finali si sovrapponevano
+                // (si leggeva "15-0722-07").
+                if ((data.length - 1 - i) % interval != 0) {
+                  return const SizedBox();
+                }
+                // fitInside tiene l'ultima data dentro al riquadro: prima
+                // veniva tagliata a meta' sul bordo destro.
+                return SideTitleWidget(
+                  axisSide: meta.axisSide,
+                  fitInside: SideTitleFitInsideData.fromTitleMeta(meta,
+                      distanceFromEdge: 0),
+                  space: 6,
                   child: Text(
                     _formatDateLabel(data[i]['date'].toString(), dateFmt),
-                    style: TextStyle(fontSize: 9, color: kText3),
+                    style: TextStyle(fontSize: 10, color: kText3),
                   ),
                 );
               },
-              reservedSize: 22,
+              reservedSize: 24,
             ),
           ),
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              getTitlesWidget: (v, _) => Text('${v.toInt()}', style: TextStyle(fontSize: 9, color: kText3)),
-              reservedSize: 40,
+              interval: step,
+              getTitlesWidget: (v, _) {
+                if ((maxY - v) < step * 0.4 || v < step * 0.4) {
+                  return const SizedBox();
+                }
+                final label = v >= 1000
+                    ? '${(v / 1000).toStringAsFixed(v % 1000 == 0 ? 0 : 1)}k'
+                    : '${v.round()}';
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: Text(label,
+                      textAlign: TextAlign.right,
+                      style: TextStyle(fontSize: 10, color: kText3)),
+                );
+              },
+              reservedSize: 42,
             ),
           ),
           topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
         borderData: FlBorderData(show: false),
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
             getTooltipColor: (_) => kSurface2,
-            tooltipPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            tooltipPadding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             fitInsideVertically: true,
             fitInsideHorizontally: true,
-            getTooltipItem: (group, groupIdx, rod, rodIdx) =>
-              BarTooltipItem(
-                'Vol: ${rod.toY.toStringAsFixed(0)}',
-                TextStyle(color: kAccent2, fontWeight: FontWeight.w600, fontSize: 13),
-              ),
+            getTooltipItem: (group, groupIdx, rod, rodIdx) => BarTooltipItem(
+              'Vol: ${rod.toY.toStringAsFixed(0)}',
+              TextStyle(
+                  color: kAccent2, fontWeight: FontWeight.w600, fontSize: 13),
+            ),
           ),
         ),
-        barGroups: data.asMap().entries.map((e) => BarChartGroupData(
-          x: e.key,
-          barRods: [
-            BarChartRodData(
-              toY: (e.value['totalVolume'] as double),
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [kAccent2.withValues(alpha: 0.4), kAccent2.withValues(alpha: 0.8)],
-              ),
-              width: data.length > 12 ? 8 : (data.length > 6 ? 12 : 20),
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ],
-        )).toList(),
+        barGroups: data
+            .asMap()
+            .entries
+            .map((e) => BarChartGroupData(
+                  x: e.key,
+                  barRods: [
+                    BarChartRodData(
+                      toY: (e.value['totalVolume'] as double),
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          kAccent2.withValues(alpha: 0.4),
+                          kAccent2.withValues(alpha: 0.8)
+                        ],
+                      ),
+                      width: data.length > 12 ? 8 : (data.length > 6 ? 12 : 20),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ],
+                ))
+            .toList(),
       ),
     );
   }
 }
-
-

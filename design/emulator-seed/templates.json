@@ -1,0 +1,115 @@
+[
+ {
+  "id": "t_push",
+  "name": "Push Day",
+  "exercises": [
+   {
+    "name": "Panca piana",
+    "restSeconds": 90,
+    "targetSeries": 4
+   },
+   {
+    "name": "Panca inclinata manubri",
+    "restSeconds": 90,
+    "targetSeries": 3
+   },
+   {
+    "name": "Croci ai cavi",
+    "restSeconds": 60,
+    "targetSeries": 3
+   },
+   {
+    "name": "Alzate laterali",
+    "restSeconds": 60,
+    "targetSeries": 4
+   },
+   {
+    "name": "Pushdown cavo",
+    "restSeconds": 60,
+    "targetSeries": 3
+   }
+  ]
+ },
+ {
+  "id": "t_pull",
+  "name": "Pull Day",
+  "exercises": [
+   {
+    "name": "Lat machine avanti",
+    "restSeconds": 90,
+    "targetSeries": 4
+   },
+   {
+    "name": "Pulley basso",
+    "restSeconds": 90,
+    "targetSeries": 3
+   },
+   {
+    "name": "Rematore manubrio",
+    "restSeconds": 75,
+    "targetSeries": 3
+   },
+   {
+    "name": "Curl bilanciere",
+    "restSeconds": 60
+   },
+   {
+    "name": "Curl manubri alternato",
+    "restSeconds": 60
+   }
+  ]
+ },
+ {
+  "id": "t_legs",
+  "name": "Leg Day",
+  "exercises": [
+   {
+    "name": "Squat bilanciere",
+    "restSeconds": 120,
+    "targetSeries": 4
+   },
+   {
+    "name": "Leg press",
+    "restSeconds": 120,
+    "targetSeries": 3
+   },
+   {
+    "name": "Leg curl",
+    "restSeconds": 60
+   },
+   {
+    "name": "Stacchi rumeni",
+    "restSeconds": 90
+   },
+   {
+    "name": "Crunch machine",
+    "restSeconds": 45
+   }
+  ]
+ },
+ {
+  "id": "t_full",
+  "name": "Full Body express",
+  "exercises": [
+   {
+    "name": "Squat bilanciere",
+    "restSeconds": 120,
+    "targetSeries": 3
+   },
+   {
+    "name": "Panca piana",
+    "restSeconds": 90,
+    "targetSeries": 3
+   },
+   {
+    "name": "Lat machine avanti",
+    "restSeconds": 90,
+    "targetSeries": 3
+   },
+   {
+    "name": "Plank",
+    "restSeconds": 45
+   }
+  ]
+ }
+]
