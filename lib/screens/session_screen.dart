@@ -177,7 +177,7 @@ class SessionScreen extends StatelessWidget {
               elevation: 0,
               highlightElevation: 0,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(kRadiusPill)),
+                  borderRadius: BorderRadius.circular(kRadiusControl + 2)),
               icon: const Icon(Icons.add, size: 22),
               label: Text(S.get('exercise_short'),
                   style: const TextStyle(

@@ -44,7 +44,7 @@ Token in `lib/theme.dart`: `kBg`, `kSurface`, `kSurface2`, `kSurface3`, `kLine`,
 | Storico: card che si espandeva sul posto, piena di bottoni | Elenco piatto (data, giorno, quanto hai fatto) → tocchi e apri la sessione (`SessionScreen`), che si modifica come Oggi. Nuovo: eliminare un allenamento intero, con annulla |
 | Giorni preimpostati applicabili da 4 punti; in Impostazioni "Applica" caricava gli esercizi ma ti lasciava lì | Si applicano solo da Oggi (lista nella giornata vuota, o "Carica un giorno preimpostato" in fondo). La pagina in Impostazioni serve solo a gestirli |
 | Eliminare un esercizio: conferma **e** annulla | Solo annulla |
-| "Nuovo giorno" sempre in evidenza, anche a sessione vuota | Compare solo se c'è qualcosa da chiudere; il voto si chiede lì ("Salva e chiudi") |
+| "Nuovo giorno" sempre in evidenza, anche a sessione vuota | "Finisci" (in alto) e "Finisci allenamento" (in fondo), solo se c'è qualcosa da chiudere; il voto si chiede lì |
 | Sessione rimasta aperta da giorni prima, intestata col giorno vecchio senza spiegazioni | Avviso "Questo allenamento è di un altro giorno · Inizia oggi". Una sessione vuota prende la data di oggi appena la riempi |
 | Import: due tab con lo stesso modulo, testi fissi in italiano, "Vai allo storico" che non ci andava | Un modulo solo (il file riempie il campo di testo), tradotto, e a fine import si apre davvero lo Storico |
 | Editor esercizio con due elenchi di muscoli identici (primari / secondari) | Un elenco: un tocco primario (pieno), due secondario (bordo), tre nessuno |
@@ -74,6 +74,22 @@ del 4 agosto 2026, **dopo il restyling di UI e navigazione**). I dati mostrati s
 di prova: 25 allenamenti su ~9 settimane, 4 schede preimpostate, libreria di 26 esercizi.
 
 Tutti gli screenshot sono nella cartella `img/`.
+
+### 0.4 Revisione 2 (stesso giorno)
+
+Niente più forme tonde, peso e reps affiancati con "−/+" piccoli e passo 1,
+il tasto "Finisci allenamento", un voto da 1 a 5 con le faccine, e il cambio
+di giorno preimpostato che chiude l'allenamento in corso (Salva / Non salvare
+/ Continua) invece di accodare gli esercizi. Dettagli e decisioni in
+[GUIDA-OPERATIVA.md](GUIDA-OPERATIVA.md).
+
+| Oggi | Serie | Com'è andata | Cambio giorno |
+|---|---|---|---|
+| ![](img-minimal/r2-01-oggi.png) | ![](img-minimal/r2-02-serie.png) | ![](img-minimal/r2-03-come-e-andata.png) | ![](img-minimal/r2-04-cambio-giorno.png) |
+
+| Dopo il cambio | Storico | Impostazioni | Serie, tema chiaro |
+|---|---|---|---|
+| ![](img-minimal/r2-05-pull-day.png) | ![](img-minimal/r2-06-storico.png) | ![](img-minimal/r2-07-impostazioni.png) | ![](img-minimal/r2-08-serie-chiaro.png) |
 
 ---
 

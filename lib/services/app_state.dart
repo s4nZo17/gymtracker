@@ -140,30 +140,80 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void startNewDay() {
-    final today = _todayIso();
+  /// Chiude l'allenamento in corso e apre una giornata nuova di oggi.
+  ///
+  /// - [save] true: la sessione resta nello Storico (con [mood], se dato).
+  ///   false: viene scartata.
+  /// - Una sessione senza nessuna serie non si tiene mai: nello Storico
+  ///   sarebbe solo una riga da "0 serie".
+  /// - [next]: giorno preimpostato da caricare nella giornata nuova.
+  ///
+  /// Ritorna cosa e' stato fatto, da passare a [undoFinish] per l'annulla;
+  /// null se non c'era niente da chiudere.
+  FinishedWorkout? finishWorkout({
+    bool save = true,
+    int? mood,
+    WorkoutTemplate? next,
+  }) {
     final current = _ensureActiveSessionExists();
-    if (current.date == today && current.exercises.isEmpty) return;
 
-    if (workouts.isNotEmpty) {
-      final last = workouts.last;
-      if (last.date == today && last.exercises.isEmpty) {
-        _activeSession = last;
-        notifyListeners();
-        return;
-      }
+    // Sessione vuota: niente da chiudere. Al massimo si carica il giorno.
+    if (current.exercises.isEmpty) {
+      if (next != null) applyTemplate(next);
+      return null;
     }
 
-    final created = WorkoutSession(date: today);
+    final hasSeries = current.exercises.any((ex) => ex.series.isNotEmpty);
+    final keep = save && hasSeries;
+    final previousMood = current.rating;
+    var removedIndex = -1;
+
+    if (keep) {
+      if (mood != null) current.rating = mood.clamp(1, 5);
+    } else {
+      removedIndex = workouts.indexOf(current);
+      if (removedIndex >= 0) workouts.removeAt(removedIndex);
+    }
+
+    final created = WorkoutSession(date: _todayIso());
     workouts.add(created);
     _activeSession = created;
+
+    if (next != null) {
+      // applyTemplate salva e notifica da solo.
+      applyTemplate(next);
+    } else {
+      _persistWorkouts();
+      notifyListeners();
+    }
+
+    // Backup automatico a ogni allenamento chiuso con dati.
+    if (keep) unawaited(_autoBackup());
+
+    return FinishedWorkout(
+      previous: current,
+      previousMood: previousMood,
+      removedIndex: removedIndex,
+      created: created,
+      saved: keep,
+    );
+  }
+
+  /// Annulla [finishWorkout]: toglie la giornata nuova e riapre quella chiusa
+  /// com'era (voto compreso).
+  void undoFinish(FinishedWorkout f) {
+    workouts.remove(f.created);
+    if (f.removedIndex >= 0 && !workouts.contains(f.previous)) {
+      workouts.insert(f.removedIndex.clamp(0, workouts.length), f.previous);
+    }
+    f.previous.rating = f.previousMood;
+    _activeSession = f.previous;
     _persistWorkouts();
     notifyListeners();
-
-    // Backup automatico ad ogni "Nuovo giorno" (solo quando si chiude
-    // davvero una giornata con dati: gli altri rami fanno return prima).
-    unawaited(_autoBackup());
   }
+
+  /// Compatibilita': chiude e salva senza voto.
+  void startNewDay() => finishWorkout();
 
   // ─── BACKUP ──────────────────────────────────────────────────────────────
 
@@ -207,7 +257,7 @@ class AppState extends ChangeNotifier {
   // ─── RATING ──────────────────────────────────────────────────────────────
 
   void setSessionRating(WorkoutSession session, int rating) {
-    final clamped = rating.clamp(1, 10);
+    final clamped = rating.clamp(1, 5);
     final targetSession = _resolveSession(session);
     if (targetSession == null) return;
 
@@ -1392,4 +1442,25 @@ class ExerciseSummary {
   });
 
   double get delta => lastMax - firstMax;
+}
+
+/// Cosa ha fatto [AppState.finishWorkout], per poterlo annullare.
+class FinishedWorkout {
+  final WorkoutSession previous;
+  final int? previousMood;
+
+  /// Posizione da cui e' stata tolta la sessione scartata; -1 se e' rimasta.
+  final int removedIndex;
+  final WorkoutSession created;
+
+  /// true se la sessione chiusa e' finita nello Storico.
+  final bool saved;
+
+  const FinishedWorkout({
+    required this.previous,
+    required this.previousMood,
+    required this.removedIndex,
+    required this.created,
+    required this.saved,
+  });
 }

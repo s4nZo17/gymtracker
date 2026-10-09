@@ -69,7 +69,6 @@ const kGreen = Color(0xFF4ADE80);
 const kRadiusCard = 14.0;
 const kRadiusControl = 10.0;
 const kRadiusSheet = 22.0;
-const kRadiusPill = 999.0;
 
 // Spaziature standard: usare queste invece di numeri sparsi.
 const kGapPage = 20.0; // margine laterale di pagina
@@ -315,6 +314,9 @@ ThemeData buildTheme(String mode, String presetId, {Color? customPrimary}) {
       thumbColor: kText,
       overlayColor: kText.withValues(alpha: 0.08),
       trackHeight: 3,
+      thumbShape: const BarThumbShape(),
+      overlayShape: SliderComponentShape.noOverlay,
+      tickMarkShape: SliderTickMarkShape.noTickMark,
     ),
     progressIndicatorTheme: ProgressIndicatorThemeData(color: kText2),
     dividerTheme: DividerThemeData(color: kLine, thickness: 1, space: 1),
@@ -330,3 +332,38 @@ ThemeData buildTheme(String mode, String presetId, {Color? customPrimary}) {
 
 /// true col tema scuro attivo (letto dai colori correnti).
 bool get isDarkTheme => kBg.computeLuminance() < 0.5;
+
+/// Cursore degli slider: una barretta verticale arrotondata invece del
+/// pallino, come il resto dell'app (niente cerchi).
+class BarThumbShape extends SliderComponentShape {
+  const BarThumbShape({this.width = 8, this.height = 26});
+
+  final double width;
+  final double height;
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) =>
+      Size(width, height);
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required Animation<double> activationAnimation,
+    required Animation<double> enableAnimation,
+    required bool isDiscrete,
+    required TextPainter labelPainter,
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required TextDirection textDirection,
+    required double value,
+    required double textScaleFactor,
+    required Size sizeWithOverflow,
+  }) {
+    final rect = Rect.fromCenter(center: center, width: width, height: height);
+    context.canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(3)),
+      Paint()..color = sliderTheme.thumbColor ?? kText,
+    );
+  }
+}

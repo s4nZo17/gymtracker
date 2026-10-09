@@ -1,9 +1,9 @@
 // lib/widgets/session_day_picker.dart
 //
 // I due fogli sui giorni preimpostati, con la stessa forma:
-//  - showTemplateSheet: CARICA gli esercizi di un giorno nell'allenamento di
-//    oggi. E' l'unico punto da cui si applica un giorno (prima c'erano anche
-//    i bottoni "Applica" in Impostazioni, che non riportavano a Oggi).
+//  - showTemplateSheet: CARICA un giorno preimpostato (via loadTemplateFlow:
+//    con un allenamento in corso chiede se salvarlo e riparte da zero).
+//    Con la lista di Oggi vuota e' l'unico punto da cui si applica un giorno.
 //  - showSessionDayPicker: ETICHETTA soltanto una sessione. Serve quando hai
 //    applicato il giorno sbagliato (applicarne un secondo non cambia il
 //    contesto, per non spostare i confronti sotto i piedi) o vuoi etichettare
@@ -17,6 +17,7 @@ import '../screens/templates_screen.dart';
 import '../services/app_state.dart';
 import '../theme.dart';
 import 'widgets.dart';
+import 'workout_flow.dart';
 
 Future<void> showTemplateSheet(BuildContext context, AppState state) {
   if (state.templates.isEmpty) {
@@ -57,8 +58,9 @@ Future<void> showTemplateSheet(BuildContext context, AppState state) {
                 trailing: RowChevron(),
                 onTap: () {
                   Navigator.pop(sheetContext);
-                  state.applyTemplate(template);
-                  showAppSnack(context, S.get('template_applied'));
+                  // Con un allenamento in corso chiede cosa farne: non si
+                  // aggiungono piu' esercizi in coda a quelli di oggi.
+                  loadTemplateFlow(context, state, template);
                 },
               ),
             ),

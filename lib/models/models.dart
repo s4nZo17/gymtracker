@@ -287,10 +287,16 @@ String formatRest(int seconds) {
   return '$m:${s.toString().padLeft(2, '0')}';
 }
 
+/// Converte un voto della vecchia scala 1-10 nella scala 1-5:
+/// 1-2 → 1, 3-4 → 2, 5-6 → 3, 7-8 → 4, 9-10 → 5.
+int moodFromLegacyRating(int rating) => ((rating.clamp(1, 10) + 1) ~/ 2);
+
 class WorkoutSession {
   String date; // yyyy-MM-dd
   List<ExerciseLog> exercises;
-  int? rating; // 1-10 post-workout feeling
+  /// Com'è andata, da 1 (malissimo) a 5 (benissimo). Salvato come `mood`;
+  /// i voti vecchi 1-10 (`rating`) si convertono alla lettura.
+  int? rating;
 
   /// Giorno preimpostato a cui appartiene la sessione; null = allenamento
   /// libero. Serve a confrontare un esercizio con la volta in cui l'hai fatto
@@ -321,7 +327,7 @@ class WorkoutSession {
     return {
       'date': date,
       'exercises': exercises.map((e) => e.toJson()).toList(),
-      if (rating != null) 'rating': rating,
+      if (rating != null) 'mood': rating,
       if (templateId != null) 'templateId': templateId,
       if (templateName != null) 'templateName': templateName,
     };
@@ -339,12 +345,13 @@ class WorkoutSession {
         }
       }
     }
-    final rawRating = json['rating'];
     int? parsedRating;
-    if (rawRating is int) {
-      parsedRating = rawRating;
+    final rawMood = json['mood'];
+    final rawRating = json['rating'];
+    if (rawMood is num) {
+      parsedRating = rawMood.toInt().clamp(1, 5);
     } else if (rawRating is num) {
-      parsedRating = rawRating.toInt();
+      parsedRating = moodFromLegacyRating(rawRating.toInt());
     }
 
     // Lo storico scritto prima dei giorni preimpostati non ha il contesto:

@@ -152,7 +152,7 @@ class _BodyMapScreenState extends State<BodyMapScreen> {
                   height: 10,
                   decoration: BoxDecoration(
                     color: stimulationColor(level),
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(2.5),
                   ),
                 ),
                 trailing: Text(
@@ -182,7 +182,7 @@ class _BodyMapScreenState extends State<BodyMapScreen> {
           height: 10,
           decoration: BoxDecoration(
             color: stimulationColor(level),
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(2.5),
           ),
         ),
         const SizedBox(width: 6),

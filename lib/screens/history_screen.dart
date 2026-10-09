@@ -32,10 +32,23 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, state, _) {
+        final active = state.todaySession;
+        final order = {
+          for (var i = 0; i < state.workouts.length; i++) state.workouts[i]: i
+        };
+        // L'allenamento in corso entra nello Storico solo quando ha almeno una
+        // serie: finche' e' una lista di esercizi da fare vive in Oggi.
         final all = state.workouts
-            .where((w) => w.exercises.isNotEmpty)
+            .where((w) =>
+                w.exercises.isNotEmpty &&
+                (!identical(w, active) || w.totalSeries > 0))
             .toList()
-          ..sort((a, b) => b.date.compareTo(a.date));
+          // A parita' di data, il piu' recente (e quindi quello in corso)
+          // va per primo.
+          ..sort((a, b) {
+            final byDate = b.date.compareTo(a.date);
+            return byDate != 0 ? byDate : order[b]!.compareTo(order[a]!);
+          });
 
         final term = _search.trim().toLowerCase();
         final sessions = term.isEmpty
@@ -179,7 +192,7 @@ class _SessionRow extends StatelessWidget {
           else if (session.rating != null)
             Padding(
               padding: const EdgeInsets.only(right: 4),
-              child: RatingBadge(session.rating!, fontSize: 12),
+              child: RatingBadge(session.rating!, fontSize: 13, showLabel: false),
             ),
           RowChevron(),
         ],

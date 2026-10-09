@@ -85,6 +85,21 @@ class _SeriesSheetState extends State<SeriesSheet> {
   SeriesType _type = SeriesType.normal;
   bool _missingValues = false;
 
+  // Al tocco il numero si seleziona tutto: si scrive quello nuovo senza
+  // cancellare prima. Senza stepper grandi la tastiera e' il modo principale.
+  final _weightFocus = FocusNode();
+  final _repsFocus = FocusNode();
+
+  void _selectAllOnFocus(FocusNode node, TextEditingController ctrl) {
+    node.addListener(() {
+      if (!node.hasFocus) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ctrl.selection =
+            TextSelection(baseOffset: 0, extentOffset: ctrl.text.length);
+      });
+    });
+  }
+
   final List<_DropControllers> _dropCtrls = [];
 
   @override
@@ -94,6 +109,8 @@ class _SeriesSheetState extends State<SeriesSheet> {
     _weightCtrl = TextEditingController(text: s != null ? formatWeight(s.weight) : '');
     _repsCtrl = TextEditingController(text: s?.reps ?? '');
     _type = s?.type ?? SeriesType.normal;
+    _selectAllOnFocus(_weightFocus, _weightCtrl);
+    _selectAllOnFocus(_repsFocus, _repsCtrl);
 
     if (s != null && s.drops.isNotEmpty) {
       for (final d in s.drops) {
@@ -122,6 +139,8 @@ class _SeriesSheetState extends State<SeriesSheet> {
 
   @override
   void dispose() {
+    _weightFocus.dispose();
+    _repsFocus.dispose();
     _weightCtrl.dispose();
     _repsCtrl.dispose();
     for (final dc in _dropCtrls) {
@@ -208,6 +227,7 @@ class _SeriesSheetState extends State<SeriesSheet> {
   void _save() {
     final w = double.tryParse(_weightCtrl.text.replaceAll(',', '.'));
     final r = _repsCtrl.text.trim();
+    if (_missingValues) setState(() => _missingValues = false);
     if (w == null || r.isEmpty) {
       // L'errore sta nello sheet: una snackbar finirebbe dietro, invisibile.
       setState(() => _missingValues = true);
@@ -244,42 +264,63 @@ class _SeriesSheetState extends State<SeriesSheet> {
     });
   }
 
-  /// Campo numerico grande fra due stepper: il numero e' il protagonista.
-  Widget _fieldWithSteppers({
+  /// Riquadro di un numero (peso o reps): etichetta piccola, numero grande da
+  /// scrivere con la tastiera, e ai lati un "−" e un "+" piccoli e spenti per
+  /// le correzioni al volo. Passo 1: si sale spesso di uno, e su molte
+  /// macchine il peso e' in libbre, dove i 2.5 kg non hanno senso.
+  Widget _numberBox({
     required TextEditingController controller,
+    required FocusNode focusNode,
     required String label,
     required VoidCallback onMinus,
     required VoidCallback onPlus,
-    required String minusLabel,
-    required String plusLabel,
     TextInputType? keyboardType,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: T.label),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            StepButton(label: minusLabel, onTap: onMinus, size: 52),
-            Expanded(
-              child: TextField(
-                controller: controller,
-                keyboardType: keyboardType ??
-                    const TextInputType.numberWithOptions(decimal: true),
-                textAlign: TextAlign.center,
-                style: T.number.copyWith(fontSize: 30),
-                decoration: const InputDecoration(
-                  filled: false,
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+    Widget nudge(IconData icon, VoidCallback onTap) => InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: SizedBox(
+            width: 34,
+            height: 40,
+            child: Icon(icon, size: 17, color: kText3),
+          ),
+        );
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),
+      decoration: BoxDecoration(
+        color: kSurface2,
+        borderRadius: BorderRadius.circular(kRadiusControl + 2),
+      ),
+      child: Column(
+        children: [
+          Text(label, style: T.label.copyWith(fontSize: 12)),
+          Row(
+            children: [
+              nudge(Icons.remove, onMinus),
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  keyboardType: keyboardType ??
+                      const TextInputType.numberWithOptions(decimal: true),
+                  textAlign: TextAlign.center,
+                  style: T.number.copyWith(fontSize: 30),
+                  decoration: const InputDecoration(
+                    filled: false,
+                    isDense: true,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(vertical: 6),
+                  ),
                 ),
               ),
-            ),
-            StepButton(label: plusLabel, onTap: onPlus, size: 52),
-          ],
-        ),
-      ],
+              nudge(Icons.add, onPlus),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -366,26 +407,32 @@ class _SeriesSheetState extends State<SeriesSheet> {
             const SizedBox(height: 14),
           ],
 
-          // Peso con stepper -/+ 2.5 kg
-          _fieldWithSteppers(
-            controller: _weightCtrl,
-            label: S.get('weight_kg'),
-            onMinus: () => _stepWeight(-2.5),
-            onPlus: () => _stepWeight(2.5),
-            minusLabel: '−2.5',
-            plusLabel: '+2.5',
-          ),
-          const SizedBox(height: 16),
-
-          // Reps con stepper -/+ 1 (il campo resta testo: accetta "ced" ecc.)
-          _fieldWithSteppers(
-            controller: _repsCtrl,
-            label: S.get('reps'),
-            onMinus: () => _stepReps(-1),
-            onPlus: () => _stepReps(1),
-            minusLabel: '−1',
-            plusLabel: '+1',
-            keyboardType: TextInputType.text,
+          // Peso e reps affiancati: lo sheet e' piu' corto e "Salva serie"
+          // resta visibile anche con la tastiera aperta.
+          Row(
+            children: [
+              Expanded(
+                child: _numberBox(
+                  controller: _weightCtrl,
+                  focusNode: _weightFocus,
+                  label: S.get('weight_kg'),
+                  onMinus: () => _stepWeight(-1),
+                  onPlus: () => _stepWeight(1),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                // Le reps restano testo: accettano anche "ced".
+                child: _numberBox(
+                  controller: _repsCtrl,
+                  focusNode: _repsFocus,
+                  label: S.get('reps'),
+                  onMinus: () => _stepReps(-1),
+                  onPlus: () => _stepReps(1),
+                  keyboardType: TextInputType.text,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 18),
 

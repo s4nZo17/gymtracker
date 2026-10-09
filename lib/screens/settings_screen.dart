@@ -226,7 +226,8 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-/// Pallino colore: pieno, con un anello quando e' scelto.
+/// Tessera colore: un quadrato arrotondato pieno, con un bordo quando e'
+/// scelto. Niente cerchi: stessa forma di campi e bottoni.
 class AccentDot extends StatelessWidget {
   final Color color;
   final bool selected;
@@ -256,14 +257,17 @@ class AccentDot extends StatelessWidget {
         height: 38,
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
+          borderRadius: BorderRadius.circular(kRadiusControl + 1),
           border: Border.all(
             color: selected ? kText : Colors.transparent,
             width: 2,
           ),
         ),
         child: Container(
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(kRadiusControl - 3),
+          ),
           child: icon != null && !selected
               ? Icon(icon, size: 16, color: Colors.white)
               : null,

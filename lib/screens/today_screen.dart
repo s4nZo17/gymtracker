@@ -19,6 +19,7 @@ import '../widgets/app_tour.dart';
 import '../widgets/exercise_block.dart';
 import '../widgets/session_day_picker.dart';
 import '../widgets/widgets.dart';
+import '../widgets/workout_flow.dart';
 import 'exercise_picker_screen.dart';
 import 'templates_screen.dart';
 
@@ -33,39 +34,47 @@ class _TodayScreenState extends State<TodayScreen> {
   /// Il FAB si ritira mentre scorri in giu' (cosi' non copre l'ultimo
   /// "Aggiungi serie") e ricompare appena risali.
   bool _fabVisible = true;
+  final _scroll = ScrollController();
+
+  /// Sessione mostrata all'ultimo build: quando cambia (Finisci, cambio di
+  /// giorno, annulla) la lista riparte dall'alto e il FAB torna visibile.
+  /// Prima restavi in fondo alla lista vecchia, e se avevi appena scorso in
+  /// giu' il FAB restava nascosto anche su una pagina che non scorre.
+  WorkoutSession? _shownSession;
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
 
   bool _onScroll(UserScrollNotification n) {
-    if (n.direction == ScrollDirection.reverse && _fabVisible) {
+    final canScroll = n.metrics.maxScrollExtent > 0;
+    if (n.direction == ScrollDirection.reverse && _fabVisible && canScroll) {
       setState(() => _fabVisible = false);
-    } else if (n.direction == ScrollDirection.forward && !_fabVisible) {
+    } else if ((n.direction == ScrollDirection.forward || !canScroll) &&
+        !_fabVisible) {
       setState(() => _fabVisible = true);
     }
     return false;
   }
 
-  Future<void> _newDay(BuildContext context, AppState state) async {
-    final session = state.todaySession;
-    final hasSeries = session.exercises.any((ex) => ex.series.isNotEmpty);
+  void _onSessionChanged(WorkoutSession session) {
+    if (identical(_shownSession, session)) return;
+    final first = _shownSession == null;
+    _shownSession = session;
+    if (first) return;
+    _fabVisible = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scroll.hasClients) _scroll.jumpTo(0);
+    });
+  }
 
-    if (hasSeries && session.rating == null) {
-      // Il voto si chiede alla chiusura, una volta sola. Chiudere il dialog
-      // (tap fuori) annulla tutto; "Salta" chiude senza voto.
-      final rating = await RatingDialog.show(context,
-          confirmText: S.get('save_and_close'));
-      if (rating == null) return;
-      if (rating > 0) state.setSessionRating(session, rating);
-    } else {
-      final ok = await confirmDialog(
-        context,
-        title: '${S.get('new_day')}?',
-        message: S.get('new_day_confirm'),
-      );
-      if (!ok) return;
-    }
-    state.startNewDay();
-    if (context.mounted && hasSeries) {
-      showAppSnack(context, S.get('workout_saved'));
-    }
+  Future<void> _editMood(BuildContext context, AppState state) async {
+    final session = state.todaySession;
+    final mood = await RatingDialog.show(context, initial: session.rating);
+    if (mood == null || mood == 0) return;
+    state.setSessionRating(session, mood);
   }
 
   void _openPicker(BuildContext context) {
@@ -80,6 +89,7 @@ class _TodayScreenState extends State<TodayScreen> {
     return Consumer<AppState>(
       builder: (context, state, _) {
         final session = state.todaySession;
+        _onSessionChanged(session);
         final locale = state.prefs.language == 'en' ? 'en_US' : 'it_IT';
         final now = DateTime.now();
         final isEmpty = session.exercises.isEmpty;
@@ -98,6 +108,7 @@ class _TodayScreenState extends State<TodayScreen> {
           body: NotificationListener<UserScrollNotification>(
             onNotification: _onScroll,
             child: CustomScrollView(
+              controller: _scroll,
               slivers: [
                 SliverToBoxAdapter(
                   child: PageHeader(
@@ -119,7 +130,10 @@ class _TodayScreenState extends State<TodayScreen> {
                         ],
                         if (session.rating != null) ...[
                           Text('·', style: T.meta.copyWith(color: kText3)),
-                          RatingBadge(session.rating!),
+                          GestureDetector(
+                            onTap: () => _editMood(context, state),
+                            child: RatingBadge(session.rating!),
+                          ),
                         ],
                       ],
                     ),
@@ -127,8 +141,9 @@ class _TodayScreenState extends State<TodayScreen> {
                         ? null
                         : HeaderAction(
                             key: TourKeys.newDayButton,
-                            label: S.get('new_day'),
-                            onTap: () => _newDay(context, state),
+                            label: S.get('finish'),
+                            icon: Icons.check,
+                            onTap: () => finishWorkoutFlow(context, state),
                           ),
                   ),
                 ),
@@ -138,7 +153,7 @@ class _TodayScreenState extends State<TodayScreen> {
                 if (isStale)
                   SliverToBoxAdapter(
                     child: _StaleBanner(
-                      onNewDay: () => _newDay(context, state),
+                      onNewDay: () => finishWorkoutFlow(context, state),
                     ),
                   ),
 
@@ -163,19 +178,30 @@ class _TodayScreenState extends State<TodayScreen> {
                     separatorBuilder: (_, __) => const Divider(
                         indent: kGapPage, endIndent: kGapPage, height: 12),
                   ),
+                  // Fine lista: e' qui che arrivi quando hai finito.
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(
-                          kGapPage - 8, 18, kGapPage, 0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
+                          kGapPage, 24, kGapPage, 0),
+                      child: ElevatedButton.icon(
+                        onPressed: () => finishWorkoutFlow(context, state),
+                        icon: const Icon(Icons.check, size: 20),
+                        label: Text(S.get('finish_workout')),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                          kGapPage - 8, 8, kGapPage, 0),
+                      child: Center(
                         child: TextButton.icon(
                           key: TourKeys.templatesRow,
                           onPressed: () => showTemplateSheet(context, state),
                           style: TextButton.styleFrom(
                               foregroundColor: kText3),
                           icon: const Icon(Icons.bolt_outlined, size: 18),
-                          label: Text(S.get('load_template'),
+                          label: Text(S.get('switch_template'),
                               style: const TextStyle(
                                   fontSize: 14, fontWeight: FontWeight.w500)),
                         ),
@@ -205,7 +231,7 @@ class _TodayScreenState extends State<TodayScreen> {
                 elevation: 0,
                 highlightElevation: 0,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(kRadiusPill)),
+                    borderRadius: BorderRadius.circular(kRadiusControl + 2)),
                 icon: const Icon(Icons.add, size: 22),
                 label: Text(
                   S.get('exercise_short'),
@@ -316,9 +342,7 @@ class _EmptyToday extends StatelessWidget {
             subtitle: _templateSummary(t),
             subtitleMaxLines: 1,
             trailing: RowChevron(),
-            onTap: () {
-              state.applyTemplate(t);
-            },
+            onTap: () => loadTemplateFlow(context, state, t),
           ),
         ),
         Padding(

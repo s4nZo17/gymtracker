@@ -224,7 +224,7 @@ class ExerciseEditorSheetState extends State<ExerciseEditorSheet> {
                       const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
                   decoration: BoxDecoration(
                     color: primary ? kText : kSurface2,
-                    borderRadius: BorderRadius.circular(kRadiusPill),
+                    borderRadius: BorderRadius.circular(kRadiusControl + 2),
                     border: Border.all(
                       color: secondary ? kText2 : Colors.transparent,
                     ),

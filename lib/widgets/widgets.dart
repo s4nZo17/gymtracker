@@ -252,9 +252,9 @@ class HeaderAction extends StatelessWidget {
     final fg = accent ? Colors.white : kText;
     return Material(
       color: accent ? kAccent : kSurface2,
-      borderRadius: BorderRadius.circular(kRadiusPill),
+      borderRadius: BorderRadius.circular(kRadiusControl),
       child: InkWell(
-        borderRadius: BorderRadius.circular(kRadiusPill),
+        borderRadius: BorderRadius.circular(kRadiusControl),
         onTap: onTap,
         child: Padding(
           padding: EdgeInsets.fromLTRB(icon != null ? 11 : 14, 8, 14, 8),
@@ -929,7 +929,7 @@ class Pill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: selected ? active : kSurface2,
-          borderRadius: BorderRadius.circular(kRadiusPill),
+          borderRadius: BorderRadius.circular(kRadiusControl),
         ),
         child: Text(
           label,
@@ -1411,38 +1411,55 @@ class _TargetSeriesDialogState extends State<TargetSeriesDialog> {
   }
 }
 
-// ─── RATING ─────────────────────────────────────────────────────────────────
-/// Voto della sessione come testo: "8/10".
+// ─── COM'E' ANDATA (VOTO 1-5) ───────────────────────────────────────────────
+/// Faccina per un voto da 1 (malissimo) a 5 (benissimo).
+IconData moodIcon(int mood) => switch (mood.clamp(1, 5)) {
+      1 => Icons.sentiment_very_dissatisfied_outlined,
+      2 => Icons.sentiment_dissatisfied_outlined,
+      3 => Icons.sentiment_neutral_outlined,
+      4 => Icons.sentiment_satisfied_outlined,
+      _ => Icons.sentiment_very_satisfied_outlined,
+    };
+
+/// Etichetta per un voto da 1 a 5.
+String moodLabel(int mood) => S.get('mood_${mood.clamp(1, 5)}');
+
+/// Voto della sessione: la faccina, e se serve l'etichetta accanto.
 class RatingBadge extends StatelessWidget {
   final int rating;
   final double fontSize;
-  const RatingBadge(this.rating, {super.key, this.fontSize = 13});
+  final bool showLabel;
+  const RatingBadge(this.rating,
+      {super.key, this.fontSize = 13, this.showLabel = true});
 
   @override
   Widget build(BuildContext context) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.favorite, color: kText3, size: fontSize),
-          const SizedBox(width: 3),
-          Text(
-            '$rating/10',
-            style: TextStyle(
-                fontSize: fontSize,
-                color: kText2,
-                fontWeight: FontWeight.w500,
-                fontFeatures: kTabular),
-          ),
+          Icon(moodIcon(rating), color: kText2, size: fontSize + 5),
+          if (showLabel) ...[
+            const SizedBox(width: 4),
+            Text(
+              moodLabel(rating),
+              style: TextStyle(
+                  fontSize: fontSize,
+                  color: kText2,
+                  fontWeight: FontWeight.w500),
+            ),
+          ],
         ],
       );
 }
 
-/// Dialog "Come ti senti?": numero grande, slider 1-10, Salta sempre possibile.
+/// Dialog "Com'e' andata?": una faccina grande che cambia, l'etichetta e uno
+/// slider a 5 scatti. Cinque voti invece di dieci: fra "bene" e "benissimo"
+/// si sceglie al volo, fra 7 e 8 no.
 class RatingDialog extends StatefulWidget {
   final int? initial;
   final String? confirmText;
   const RatingDialog({super.key, this.initial, this.confirmText});
 
-  /// Ritorna il voto, 0 se l'utente salta, null se chiude il dialog.
+  /// Ritorna il voto (1-5), 0 se l'utente salta, null se chiude il dialog.
   static Future<int?> show(BuildContext context,
       {int? initial, String? confirmText}) {
     return showDialog<int>(
@@ -1457,7 +1474,13 @@ class RatingDialog extends StatefulWidget {
 }
 
 class _RatingDialogState extends State<RatingDialog> {
-  late int _selected = widget.initial ?? 7;
+  late int _selected = (widget.initial ?? 3).clamp(1, 5);
+
+  void _set(int value) {
+    if (value == _selected) return;
+    HapticFeedback.selectionClick();
+    setState(() => _selected = value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1466,19 +1489,55 @@ class _RatingDialogState extends State<RatingDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(S.get('rate_workout_desc'), style: T.meta),
-          const SizedBox(height: 12),
-          Text('$_selected',
-              style: T.number.copyWith(fontSize: 52, letterSpacing: -2)),
-          Slider(
-            min: 1,
-            max: 10,
-            divisions: 9,
-            value: _selected.toDouble(),
-            onChanged: (v) {
-              if (v.round() != _selected) HapticFeedback.selectionClick();
-              setState(() => _selected = v.round());
-            },
+          const SizedBox(height: 4),
+          // Toccare la faccina fa avanzare il voto (5 → torna a 1).
+          GestureDetector(
+            onTap: () => _set(_selected == 5 ? 1 : _selected + 1),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 160),
+              transitionBuilder: (child, anim) =>
+                  ScaleTransition(scale: anim, child: child),
+              child: Icon(
+                moodIcon(_selected),
+                key: ValueKey(_selected),
+                size: 84,
+                color: kText,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(moodLabel(_selected), style: T.title.copyWith(fontSize: 20)),
+          const SizedBox(height: 8),
+          // Rientro di 20: gli scatti dello slider cadono esattamente sopra
+          // le cinque faccine piccole.
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Slider(
+              min: 1,
+              max: 5,
+              divisions: 4,
+              value: _selected.toDouble(),
+              onChanged: (v) => _set(v.round()),
+            ),
+          ),
+          Padding(
+            // 20 del rientro + 4 di margine interno dello slider − 10 di
+            // mezza faccina: ogni faccina sta sotto il suo scatto.
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                for (var i = 1; i <= 5; i++)
+                  GestureDetector(
+                    onTap: () => _set(i),
+                    child: Icon(
+                      moodIcon(i),
+                      size: 20,
+                      color: i == _selected ? kText : kText3,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
