@@ -37,13 +37,10 @@ per le reps.
   grandi. Lo sheet si accorcia e "Salva serie" resta visibile anche con la
   tastiera aperta.
 - Ai lati di ogni numero ci sono un "−" e un "+" piccoli, solo icona e in
-  grigio. Passo 1 per il peso (vale sia per i kg sia per le libbre) e 1 per
-  le reps.
+  grigio. Passo 1 sia per il peso sia per le reps.
 - **[+]** Toccando un numero il testo viene selezionato tutto: si scrive il
   valore nuovo senza prima cancellare. Senza gli stepper grandi la tastiera
   diventa il modo principale, quindi deve essere rapida.
-- Libbre: i dati restano numeri come li scrivi. La conversione kg/lb è fuori
-  da questo giro (vedi §7).
 
 ## 3. Tasto "Finisci allenamento"
 
@@ -123,15 +120,9 @@ domanda) e "Carica un giorno preimpostato" in fondo alla lista.
 3. Lista di errori e migliorie trovati, corretti, poi ricontrollati.
 4. Screenshot finali.
 
-## 7. Fuori da questo giro (proposte)
-
-- **Unità kg/lb per esercizio:** ogni macchina ricorderebbe la sua unità, con
-  la conversione solo nei grafici. Tocca il formato dei dati, quindi va
-  deciso a parte.
-
 ---
 
-## 8. Esito (9 ottobre 2026)
+## 7. Esito (9 ottobre 2026)
 
 Tutto il piano qui sopra è implementato. `flutter analyze` è pulito e i
 test passano: 32 in tutto, di cui 11 nuovi in `test/finish_workout_test.dart`
