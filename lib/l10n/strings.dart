@@ -16,6 +16,8 @@ class S {
       'create_one': 'Creane uno',
       'free_workout_long': 'Allenamento libero',
       'workout_single': 'allenamento',
+      'tour_series_title': 'Registrare le serie',
+      'tour_series_text': 'In ogni esercizio tocca "+ Aggiungi serie": peso e ripetizioni sono già quelli dell\'ultima volta, cambi solo ciò che serve. Tocca una serie per correggerla, scorrila a sinistra per eliminarla.',
       // Revisione 2
       'mood_1': 'Malissimo',
       'mood_2': 'Male',
@@ -294,14 +296,14 @@ class S {
       'create': 'Crea',
 
       // Tour interattivo
-      'tour_add_title': 'Aggiungi esercizi',
-      'tour_add_text': 'Aggiungi gli esercizi di oggi. Poi "+ Aggiungi serie" per registrare peso e ripetizioni; tocca una serie per modificarla, scorrila a sinistra per eliminarla.',
+      'tour_add_title': 'Allenamento libero',
+      'tour_add_text': 'Niente scheda oggi? Aggiungi gli esercizi uno alla volta, man mano che li fai.',
       'tour_templates_title': 'Giorni preimpostati',
-      'tour_templates_text': 'Le tue schede pronte: un tocco e carichi tutti gli esercizi del giorno, con serie previste e recuperi.',
+      'tour_templates_text': 'Le tue schede. Crea un giorno con il +, poi tocca ▷ per iniziare: arrivano tutti i suoi esercizi, con serie previste e recuperi. Tieni premuto un giorno per modificarlo.',
       'tour_newday_title': 'Finisci allenamento',
-      'tour_newday_text': 'Quando hai finito: dici com\'è andata, l\'allenamento va nello Storico e Oggi riparte da zero.',
+      'tour_newday_text': 'Quando hai finito tocca "Finisci": dici com\'è andata e l\'allenamento va nello Storico. Oggi riparte da zero.',
       'tour_nav_title': 'Tutto il resto',
-      'tour_nav_text': 'Storico = gli allenamenti passati, modificabili. Progressi = i tuoi esercizi con grafici e mappa dei muscoli. Impostazioni = tema, backup e giorni preimpostati.',
+      'tour_nav_text': 'Storico: gli allenamenti passati, modificabili. Progressi: grafici dei tuoi esercizi e mappa dei muscoli. Impostazioni: tema, colore, backup e giorni preimpostati.',
       'tour_done': 'Ho capito!',
       'tour_replay': 'Rivedi il tour',
 
@@ -351,6 +353,8 @@ class S {
       'create_one': 'Create one',
       'free_workout_long': 'Free workout',
       'workout_single': 'workout',
+      'tour_series_title': 'Logging sets',
+      'tour_series_text': 'In each exercise tap "+ Add set": weight and reps are already last time\'s, change only what you need. Tap a set to fix it, swipe it left to delete it.',
       // Revisione 2
       'mood_1': 'Awful',
       'mood_2': 'Bad',
@@ -626,14 +630,14 @@ class S {
       'create': 'Create',
 
       // Interactive tour
-      'tour_add_title': 'Add exercises',
-      'tour_add_text': 'Add today\'s exercises. Then "+ Add set" to log weight and reps; tap a set to edit it, swipe it left to delete.',
+      'tour_add_title': 'Free workout',
+      'tour_add_text': 'No routine today? Add exercises one at a time, as you go.',
       'tour_templates_title': 'Preset days',
-      'tour_templates_text': 'Your ready-made routines: one tap loads all the day\'s exercises, with planned sets and rest times.',
+      'tour_templates_text': 'Your routines. Create a day with +, then tap ▷ to start: all its exercises load, with planned sets and rest times. Long-press a day to edit it.',
       'tour_newday_title': 'Finish workout',
-      'tour_newday_text': 'When you\'re done: say how it went, the workout goes to History and Today starts fresh.',
+      'tour_newday_text': 'When you\'re done, tap "Finish": say how it went and the workout goes to History. Today starts fresh.',
       'tour_nav_title': 'Everything else',
-      'tour_nav_text': 'History = past workouts, editable. Progress = your exercises with charts and muscle map. Settings = theme, backups and preset days.',
+      'tour_nav_text': 'History: past workouts, editable. Progress: charts of your exercises and the muscle map. Settings: theme, color, backups and preset days.',
       'tour_done': 'Got it!',
       'tour_replay': 'Replay the tour',
 

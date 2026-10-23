@@ -2,6 +2,9 @@
 //
 // Tour interattivo: overlay scuro con "buco" (spotlight) sull'elemento
 // da spiegare, fumetto con testo e pulsanti Avanti / Salta.
+// Un passo puo' non avere un elemento da indicare (o non trovarlo, come
+// "Finisci" al primo avvio, quando non c'e' ancora un allenamento): allora il
+// fumetto sta al centro e lo sfondo e' scuro tutto.
 // Nessuna dipendenza esterna.
 
 import 'package:flutter/material.dart';
@@ -17,31 +20,47 @@ class TourKeys {
 }
 
 class TourStep {
-  final GlobalKey targetKey;
+  /// Elemento da indicare; null = passo solo testo, al centro.
+  final GlobalKey? targetKey;
   final String title;
   final String text;
 
+  /// true: se l'elemento non c'e' (non montato) il passo si mostra al centro
+  /// invece di essere saltato.
+  final bool centerIfMissing;
+
   const TourStep({
-    required this.targetKey,
+    this.targetKey,
     required this.title,
     required this.text,
+    this.centerIfMissing = false,
   });
+
+  bool get isAvailable =>
+      targetKey == null || centerIfMissing || targetKey!.currentContext != null;
 }
 
-/// Passi standard del tour (le stringhe leggono la lingua corrente).
+/// Passi standard del tour, nell'ordine in cui si usa l'app: come si inizia
+/// (giorno preimpostato o libero), come si registra, come si chiude, dove
+/// sta il resto. Le stringhe leggono la lingua corrente.
 List<TourStep> defaultTourSteps() => [
-      TourStep(
-        targetKey: TourKeys.addExerciseFab,
-        title: S.get('tour_add_title'),
-        text: S.get('tour_add_text'),
-      ),
       TourStep(
         targetKey: TourKeys.templatesRow,
         title: S.get('tour_templates_title'),
         text: S.get('tour_templates_text'),
       ),
       TourStep(
+        targetKey: TourKeys.addExerciseFab,
+        title: S.get('tour_add_title'),
+        text: S.get('tour_add_text'),
+      ),
+      TourStep(
+        title: S.get('tour_series_title'),
+        text: S.get('tour_series_text'),
+      ),
+      TourStep(
         targetKey: TourKeys.newDayButton,
+        centerIfMissing: true,
         title: S.get('tour_newday_title'),
         text: S.get('tour_newday_text'),
       ),
@@ -64,9 +83,8 @@ class AppTour {
   }) {
     if (_entry != null) return;
     final resolved = steps ?? defaultTourSteps();
-    // Tieni solo i passi il cui target è effettivamente montato.
-    final valid =
-        resolved.where((s) => s.targetKey.currentContext != null).toList();
+    // Tieni solo i passi che si possono mostrare adesso.
+    final valid = resolved.where((s) => s.isAvailable).toList();
     if (valid.isEmpty) {
       onDone?.call();
       return;
@@ -102,7 +120,7 @@ class _TourOverlayState extends State<_TourOverlay> {
 
   Rect? _targetRect() {
     final key = widget.steps[_index].targetKey;
-    final ctx = key.currentContext;
+    final ctx = key?.currentContext;
     if (ctx == null) return null;
     final box = ctx.findRenderObject() as RenderBox?;
     if (box == null || !box.attached) return null;
@@ -125,14 +143,16 @@ class _TourOverlayState extends State<_TourOverlay> {
     final screen = MediaQuery.of(context).size;
     final isLast = _index == widget.steps.length - 1;
 
-    if (rect == null) {
+    final centered =
+        step.targetKey == null || (rect == null && step.centerIfMissing);
+    if (rect == null && !centered) {
       // target sparito: passa oltre
       WidgetsBinding.instance.addPostFrameCallback((_) => _next());
       return const SizedBox.shrink();
     }
 
-    // Fumetto sopra o sotto il target, dov'e piu spazio.
-    final showBelow = rect.center.dy < screen.height / 2;
+    // Fumetto sopra o sotto il target, dov'e' piu' spazio.
+    final showBelow = rect != null && rect.center.dy < screen.height / 2;
 
     return Material(
       type: MaterialType.transparency,
@@ -143,18 +163,25 @@ class _TourOverlayState extends State<_TourOverlay> {
             child: GestureDetector(
               onTap: _next,
               child: CustomPaint(
-                painter: _SpotlightPainter(hole: rect),
+                painter: _SpotlightPainter(hole: centered ? null : rect),
               ),
             ),
           ),
           // fumetto
-          Positioned(
-            left: 24,
-            right: 24,
-            top: showBelow ? rect.bottom + 16 : null,
-            bottom: showBelow ? null : screen.height - rect.top + 16,
-            child: _bubble(step, isLast),
-          ),
+          if (centered)
+            Positioned.fill(
+              left: 24,
+              right: 24,
+              child: Center(child: _bubble(step, isLast)),
+            )
+          else
+            Positioned(
+              left: 24,
+              right: 24,
+              top: showBelow ? rect.bottom + 16 : null,
+              bottom: showBelow ? null : screen.height - rect!.top + 16,
+              child: _bubble(step, isLast),
+            ),
         ],
       ),
     );
@@ -173,8 +200,7 @@ class _TourOverlayState extends State<_TourOverlay> {
         children: [
           Text(
             '${_index + 1} / ${widget.steps.length}',
-            style: TextStyle(
-                fontSize: 12, color: kText3, fontWeight: FontWeight.w500),
+            style: T.section,
           ),
           const SizedBox(height: 4),
           Padding(
@@ -182,10 +208,9 @@ class _TourOverlayState extends State<_TourOverlay> {
             child: Text(
               step.title,
               style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
+                fontSize: 19,
+                fontWeight: FontWeight.w700,
                 color: kText,
-                letterSpacing: -0.3,
               ),
             ),
           ),
@@ -194,7 +219,7 @@ class _TourOverlayState extends State<_TourOverlay> {
             padding: const EdgeInsets.only(right: 8),
             child: Text(
               step.text,
-              style: TextStyle(fontSize: 14, color: kText2, height: 1.45),
+              style: TextStyle(fontSize: 15, color: kTextSoft, height: 1.45),
             ),
           ),
           const SizedBox(height: 6),
@@ -225,16 +250,23 @@ class _TourOverlayState extends State<_TourOverlay> {
 }
 
 class _SpotlightPainter extends CustomPainter {
-  final Rect hole;
+  /// null = nessun buco: tutto scuro (passo al centro).
+  final Rect? hole;
 
   _SpotlightPainter({required this.hole});
 
   @override
   void paint(Canvas canvas, Size size) {
     final bg = Path()..addRect(Offset.zero & size);
-    final cut = Path()
-      ..addRRect(RRect.fromRectAndRadius(hole, const Radius.circular(kRadius + 4)));
-    final path = Path.combine(PathOperation.difference, bg, cut);
+    final path = hole == null
+        ? bg
+        : Path.combine(
+            PathOperation.difference,
+            bg,
+            Path()
+              ..addRRect(RRect.fromRectAndRadius(
+                  hole!, const Radius.circular(kRadius + 4))),
+          );
 
     canvas.drawPath(
       path,
