@@ -139,3 +139,13 @@ flutter test
 
 È l'app che uso io, quindi cresce secondo le mie esigenze. Segnalazioni di
 bug e idee sono benvenute, ma non è detto che diventino funzioni.
+
+## Licenza
+
+Copyright (C) 2026 s4nZo17
+
+GymTracker è software libero: puoi ridistribuirlo e modificarlo secondo i
+termini della [GNU Affero General Public License](LICENSE), versione 3. In
+breve: puoi usare, studiare e modificare il codice, ma se distribuisci una
+versione modificata (anche come servizio in rete) devi pubblicarne il codice
+con la stessa licenza.
