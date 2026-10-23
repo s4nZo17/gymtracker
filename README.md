@@ -116,6 +116,13 @@ Io queste funzioni non le uso. GymTracker invece è pensato così:
 - L'app non chiede il permesso di accedere a internet: i dati non escono dal
   telefono, a meno che non li esporti tu.
 
+## Scaricare l'app
+
+L'APK per Android è nella pagina
+[Releases](https://github.com/s4nZo17/gymtracker/releases/latest): scaricalo
+dal telefono e aprilo. Android chiede di consentire l'installazione da quella
+fonte la prima volta.
+
 ## Compilare l'app
 
 Serve [Flutter](https://docs.flutter.dev/get-started/install) (sviluppata con
