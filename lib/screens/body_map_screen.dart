@@ -36,8 +36,8 @@ class _BodyMapScreenState extends State<BodyMapScreen> {
     return d.subtract(Duration(days: d.weekday - 1));
   }
 
-  void _prevWeek() => setState(
-      () => _weekStart = _weekStart.subtract(const Duration(days: 7)));
+  void _prevWeek() =>
+      setState(() => _weekStart = _weekStart.subtract(const Duration(days: 7)));
 
   void _nextWeek() {
     final next = _weekStart.add(const Duration(days: 7));
@@ -77,19 +77,19 @@ class _BodyMapScreenState extends State<BodyMapScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.chevron_left, color: kText2),
+                    icon: Icon(Icons.chevron_left, color: kText),
                     onPressed: _prevWeek,
                   ),
                   Expanded(
                     child: Text(
                       dateLabel,
                       textAlign: TextAlign.center,
-                      style: T.body.copyWith(fontWeight: FontWeight.w600),
+                      style: T.title,
                     ),
                   ),
                   IconButton(
                     icon: Icon(Icons.chevron_right,
-                        color: canGoNext ? kText2 : kSurface3),
+                        color: canGoNext ? kText : kSurface3),
                     onPressed: canGoNext ? _nextWeek : null,
                   ),
                 ],
@@ -140,33 +140,40 @@ class _BodyMapScreenState extends State<BodyMapScreen> {
             ),
 
             SectionTitle(S.get('effective_sets_title')),
-            ...muscles.map((m) {
-              final sets = data[m.id] ?? 0;
-              final level = stimulationFromSets(sets);
-              final trained = sets > 0;
-              return ListRow(
-                title: m.name(state.prefs.language),
-                titleColor: trained ? kText : kText3,
-                leading: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: stimulationColor(level),
-                    borderRadius: BorderRadius.circular(2.5),
+            Block(children: [
+              ...muscles.map((m) {
+                final sets = data[m.id] ?? 0;
+                final level = stimulationFromSets(sets);
+                final trained = sets > 0;
+                return ListRow(
+                  title: m.name(state.prefs.language),
+                  titleColor: trained ? kText : kText2,
+                  leading: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: stimulationColor(level),
+                      borderRadius: BorderRadius.circular(2.5),
+                    ),
                   ),
-                ),
-                trailing: Text(
-                  trained ? _fmtSets(sets) : '—',
-                  style: T.meta.copyWith(
-                    color: trained ? kText : kText3,
-                    fontWeight: FontWeight.w500,
-                    fontFeatures: kTabular,
+                  titleStyle: T.body,
+                  trailing: Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Text(
+                      trained ? _fmtSets(sets) : '—',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: trained ? kText : kText3,
+                        fontWeight: FontWeight.w600,
+                        fontFeatures: kTabular,
+                      ),
+                    ),
                   ),
-                ),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: kGapPage, vertical: 12),
-              );
-            }),
+                  minHeight: 52,
+                  padding: const EdgeInsets.fromLTRB(kBlockInset, 12, 12, 12),
+                );
+              }),
+            ]),
           ],
         );
       },
@@ -186,7 +193,7 @@ class _BodyMapScreenState extends State<BodyMapScreen> {
           ),
         ),
         const SizedBox(width: 6),
-        Text(label, style: T.label.copyWith(fontSize: 12.5)),
+        Text(label, style: T.label),
       ],
     );
   }

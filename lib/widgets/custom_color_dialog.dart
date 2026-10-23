@@ -125,7 +125,7 @@ class _CustomColorDialogState extends State<_CustomColorDialog> {
             }
             Navigator.of(widget.dialogContext).pop(parsed);
           },
-          child: Text(widget.saveText, style: TextStyle(color: kAccent)),
+          child: Text(widget.saveText, style: TextStyle(color: kAccentText)),
         ),
       ],
     );

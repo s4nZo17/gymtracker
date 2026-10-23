@@ -112,20 +112,22 @@ class _ImportScreenState extends State<ImportScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SheetTitle(S.get('import_day_label')),
-            for (final t in [...state.templates, null])
-              Builder(
-                builder: (sheetContext) => ListRow(
-                  title: t?.name ?? S.get('free_workout'),
-                  titleColor: t == null ? kText2 : null,
-                  trailing: t?.id == _selectedTemplate?.id
-                      ? Icon(Icons.check, size: 20, color: kText)
-                      : const SizedBox(width: 20),
-                  onTap: () {
-                    setState(() => _selectedTemplate = t);
-                    Navigator.pop(sheetContext);
-                  },
+            Block(children: [
+              for (final t in [...state.templates, null])
+                Builder(
+                  builder: (sheetContext) => ListRow(
+                    title: t?.name ?? S.get('free_workout_long'),
+                    titleColor: t == null ? kText2 : null,
+                    trailing: t?.id == _selectedTemplate?.id
+                        ? Icon(Icons.check, size: 22, color: kAccentText)
+                        : const SizedBox(width: 22),
+                    onTap: () {
+                      setState(() => _selectedTemplate = t);
+                      Navigator.pop(sheetContext);
+                    },
+                  ),
                 ),
-              ),
+            ]),
           ],
         ),
       ),
@@ -157,38 +159,45 @@ class _ImportScreenState extends State<ImportScreen> {
         padding: const EdgeInsets.only(bottom: 24),
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(kGapPage, 0, kGapPage, 8),
+            padding: const EdgeInsets.fromLTRB(kGapPage, 8, kGapPage, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(S.get('import_blocknotes'), style: T.display),
-                const SizedBox(height: 6),
+                Text(S.get('import_blocknotes'),
+                    style: T.display.copyWith(fontSize: 34, letterSpacing: -1)),
+                const SizedBox(height: 10),
                 Text(S.get('import_format_help'),
                     style: T.meta.copyWith(height: 1.5)),
               ],
             ),
           ),
-          const SizedBox(height: 8),
-          const Divider(indent: kGapPage, endIndent: kGapPage),
-          ListRow(
-            title: S.get('import_date_label'),
-            trailing: Text(
-              dateLabel[0].toUpperCase() + dateLabel.substring(1),
-              style: T.meta.copyWith(color: kText),
-            ),
-            onTap: _pickDate,
-          ),
-          if (state.templates.isNotEmpty)
+          const SizedBox(height: 24),
+          Block(children: [
             ListRow(
-              title: S.get('import_day_label'),
-              trailing: Text(
-                _selectedTemplate?.name ?? S.get('free_workout'),
-                style: T.meta.copyWith(color: kText),
+              title: S.get('import_date_label'),
+              titleStyle: T.body,
+              trailing: Flexible(
+                child: Text(
+                  dateLabel[0].toUpperCase() + dateLabel.substring(1),
+                  textAlign: TextAlign.right,
+                  style: T.meta.copyWith(color: kTextSoft),
+                ),
               ),
-              onTap: _pickTemplate,
+              onTap: _pickDate,
             ),
+            if (state.templates.isNotEmpty)
+              ListRow(
+                title: S.get('import_day_label'),
+                titleStyle: T.body,
+                trailing: Text(
+                  _selectedTemplate?.name ?? S.get('free_workout_long'),
+                  style: T.meta.copyWith(color: kTextSoft),
+                ),
+                onTap: _pickTemplate,
+              ),
+          ]),
           Padding(
-            padding: const EdgeInsets.fromLTRB(kGapPage, 18, kGapPage, 0),
+            padding: const EdgeInsets.fromLTRB(kGapPage, 16, kGapPage, 0),
             child: TextField(
               controller: _textCtrl,
               maxLines: 10,
@@ -197,6 +206,7 @@ class _ImportScreenState extends State<ImportScreen> {
               decoration: InputDecoration(
                 hintText: S.get('import_paste_hint'),
                 alignLabelWithHint: true,
+                fillColor: blockColor,
               ),
               style: TextStyle(
                   fontFamily: 'monospace', fontSize: 13, color: kText),
@@ -223,14 +233,14 @@ class _ImportScreenState extends State<ImportScreen> {
           if (_preview != null) ...[
             SectionTitle(
                 '${S.get('preview')} · ${_preview!.exercises.length} ${S.get('exercises_count')}'),
-            ..._preview!.exercises.map(
-              (ex) => ListRow(
-                title: ex.name,
-                subtitle: ex.series.map((s) => s.summary).join('  '),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: kGapPage, vertical: 10),
+            Block(children: [
+              ..._preview!.exercises.map(
+                (ex) => ListRow(
+                  title: ex.name,
+                  subtitle: ex.series.map((s) => s.summary).join('   '),
+                ),
               ),
-            ),
+            ]),
           ],
         ],
       ),

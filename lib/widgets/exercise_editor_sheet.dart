@@ -165,7 +165,7 @@ class ExerciseEditorSheetState extends State<ExerciseEditorSheet> {
             widget.existing != null
                 ? S.get('edit_exercise')
                 : S.get('new_exercise'),
-            style: T.title.copyWith(fontSize: 19),
+            style: T.title.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 16),
           TextField(
@@ -185,11 +185,11 @@ class ExerciseEditorSheetState extends State<ExerciseEditorSheet> {
                   style: const TextStyle(color: kRed, fontSize: 13)),
             ),
           const SizedBox(height: 20),
-          Text(S.get('category'), style: T.label),
-          const SizedBox(height: 8),
+          Text(S.get('category').toUpperCase(), style: T.section),
+          const SizedBox(height: 10),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               for (final c in categories)
                 Pill(
@@ -206,13 +206,13 @@ class ExerciseEditorSheetState extends State<ExerciseEditorSheet> {
             ],
           ),
           const SizedBox(height: 20),
-          Text(S.get('muscles'), style: T.label),
-          const SizedBox(height: 2),
-          Text(S.get('muscles_hint'), style: T.meta.copyWith(fontSize: 12.5)),
+          Text(S.get('muscles').toUpperCase(), style: T.section),
+          const SizedBox(height: 4),
+          Text(S.get('muscles_hint'), style: T.meta.copyWith(fontSize: 13)),
           const SizedBox(height: 10),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: 8,
+            runSpacing: 8,
             children: allMuscleGroups.map((m) {
               final primary = _primaryMuscles.contains(m.id);
               final secondary = _secondaryMuscles.contains(m.id);
@@ -220,23 +220,31 @@ class ExerciseEditorSheetState extends State<ExerciseEditorSheet> {
                 onTap: () => _cycleMuscle(m.id),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 140),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+                  height: 36,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  // Primario: bordo chiaro; secondario: bordo spento. Niente
+                  // pieno bianco, che pesava piu' di tutto il resto.
                   decoration: BoxDecoration(
-                    color: primary ? kText : kSurface2,
-                    borderRadius: BorderRadius.circular(kRadiusControl + 2),
+                    color: primary ? kSurface3 : kSurface2,
+                    borderRadius: BorderRadius.circular(kRadius),
                     border: Border.all(
-                      color: secondary ? kText2 : Colors.transparent,
+                      color: primary
+                          ? kTextSoft
+                          : (secondary ? kDashed : Colors.transparent),
                     ),
                   ),
-                  child: Text(
-                    m.name(S.lang),
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: primary || secondary
-                          ? FontWeight.w600
-                          : FontWeight.w500,
-                      color: primary ? kBg : (secondary ? kText : kText2),
+                  child: Align(
+                    widthFactor: 1,
+                    child: Text(
+                      m.name(S.lang),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: primary || secondary
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color:
+                            primary ? kText : (secondary ? kTextSoft : kText2),
+                      ),
                     ),
                   ),
                 ),

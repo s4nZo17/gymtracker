@@ -22,7 +22,7 @@ class TemplatesScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => _TemplateEditorScreen(existing: existing),
+        builder: (_) => TemplateEditorScreen(existing: existing),
       ),
     );
   }
@@ -48,64 +48,53 @@ class TemplatesScreen extends StatelessWidget {
                 child: Text(S.get('import_template_text'),
                     style: TextStyle(color: kText2)),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
             ],
           ),
           body: ListView(
             padding: const EdgeInsets.only(bottom: kBottomSafeSpace),
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(kGapPage, 0, kGapPage, 4),
+                padding: const EdgeInsets.fromLTRB(kGapPage, 8, kGapPage, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(S.get('templates'), style: T.display),
-                    const SizedBox(height: 4),
+                    Text(S.get('templates'),
+                        style: T.display
+                            .copyWith(fontSize: 34, letterSpacing: -1)),
+                    const SizedBox(height: 10),
                     Text(S.get('templates_desc'), style: T.meta),
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 28),
               if (state.templates.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 40),
-                  child: EmptyState(
-                    title: S.get('no_templates'),
-                    subtitle: S.get('no_templates_sub'),
-                    actionLabel: S.get('new_template'),
-                    onAction: () => _openEditor(context, null),
-                  ),
+                EmptyState(
+                  title: S.get('no_templates'),
+                  subtitle: S.get('no_templates_sub'),
                 )
-              else ...[
-                const Divider(indent: kGapPage, endIndent: kGapPage),
-                ...state.templates.map(
-                  (t) => ListRow(
-                    title: t.name,
-                    subtitle: _summary(t),
-                    subtitleMaxLines: 1,
-                    trailing: RowChevron(),
-                    onTap: () => _openEditor(context, t),
-                  ),
+              else
+                Block(children: [
+                  for (final t in state.templates)
+                    ListRow(
+                      title: t.name,
+                      titleColor: kAccentText,
+                      subtitle: _summary(t),
+                      subtitleMaxLines: 1,
+                      minHeight: 76,
+                      trailing: RowChevron(),
+                      onTap: () => _openEditor(context, t),
+                    ),
+                ]),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(kGapPage, 16, kGapPage, 0),
+                child: DashedButton(
+                  label: S.get('new_template'),
+                  onTap: () => _openEditor(context, null),
                 ),
-              ],
+              ),
             ],
           ),
-          floatingActionButton: state.templates.isEmpty
-              ? null
-              : FloatingActionButton.extended(
-                  heroTag: 'templates-fab',
-                  onPressed: () => _openEditor(context, null),
-                  backgroundColor: kAccent,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  highlightElevation: 0,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(kRadiusControl + 2)),
-                  icon: const Icon(Icons.add, size: 22),
-                  label: Text(S.get('new'),
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 15)),
-                ),
         );
       },
     );
@@ -189,17 +178,19 @@ Esempio completo (questo è il formato finale che mi devi dare):
         children: [
           const SizedBox(height: 16),
           Text(S.get('import_template_title'),
-              style: T.title.copyWith(fontSize: 19)),
+              style:
+                  T.title.copyWith(fontSize: 22, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
-          Text(S.get('import_template_hint'), style: T.meta.copyWith(height: 1.4)),
+          Text(S.get('import_template_hint'),
+              style: T.meta.copyWith(height: 1.4)),
           const SizedBox(height: 14),
 
           // Passo 1: copia il prompt
           Material(
             color: kSurface2,
-            borderRadius: BorderRadius.circular(kRadiusControl + 2),
+            borderRadius: BorderRadius.circular(kRadius),
             child: InkWell(
-              borderRadius: BorderRadius.circular(kRadiusControl + 2),
+              borderRadius: BorderRadius.circular(kRadius),
               onTap: _copyPrompt,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -218,7 +209,7 @@ Esempio completo (questo è il formato finale che mi devi dare):
                       ),
                     ),
                     Icon(_copied ? Icons.check : Icons.copy_outlined,
-                        size: 19, color: _copied ? kAccent : kText2),
+                        size: 19, color: _copied ? kAccentText : kText2),
                   ],
                 ),
               ),
@@ -236,8 +227,8 @@ Esempio completo (questo è il formato finale che mi devi dare):
             decoration: InputDecoration(
               hintText:
                   '# Push Day\n- Panca piana | 4x | 2:00\n- Croci ai cavi | 3x | 1:30\n...',
-              hintStyle:
-                  TextStyle(color: kText3, fontFamily: 'monospace', fontSize: 12),
+              hintStyle: TextStyle(
+                  color: kText3, fontFamily: 'monospace', fontSize: 12),
             ),
             onChanged: (_) => _refreshPreview(state),
           ),
@@ -286,16 +277,16 @@ Esempio completo (questo è il formato finale che mi devi dare):
 
 // ─── EDITOR ─────────────────────────────────────────────────────────────────
 
-class _TemplateEditorScreen extends StatefulWidget {
+class TemplateEditorScreen extends StatefulWidget {
   final WorkoutTemplate? existing;
 
-  const _TemplateEditorScreen({this.existing});
+  const TemplateEditorScreen({super.key, this.existing});
 
   @override
-  State<_TemplateEditorScreen> createState() => _TemplateEditorScreenState();
+  State<TemplateEditorScreen> createState() => _TemplateEditorScreenState();
 }
 
-class _TemplateEditorScreenState extends State<_TemplateEditorScreen> {
+class _TemplateEditorScreenState extends State<TemplateEditorScreen> {
   late TextEditingController _nameCtrl;
   final List<TemplateExercise> _selectedExercises = [];
   String _search = '';
@@ -390,7 +381,7 @@ class _TemplateEditorScreenState extends State<_TemplateEditorScreen> {
   Widget _valueTap(String text, bool set, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(kRadius),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         child: Text(
@@ -448,12 +439,14 @@ class _TemplateEditorScreenState extends State<_TemplateEditorScreen> {
                 child: TextField(
                   controller: _nameCtrl,
                   textCapitalization: TextCapitalization.sentences,
-                  style: T.body,
+                  style: T.title,
                   onChanged: (_) {
                     if (_nameMissing) setState(() => _nameMissing = false);
                   },
-                  decoration:
-                      InputDecoration(hintText: S.get('template_name')),
+                  decoration: InputDecoration(
+                    hintText: S.get('template_name'),
+                    fillColor: blockColor,
+                  ),
                 ),
               ),
               if (_nameMissing)
@@ -469,38 +462,43 @@ class _TemplateEditorScreenState extends State<_TemplateEditorScreen> {
                     ? S.get('select_exercises')
                     : '${_selectedExercises.length} ${S.get('exercises_count')} · ${S.get('series_rest_hint')}',
               ),
-              ..._selectedExercises.asMap().entries.map((entry) {
-                final i = entry.key;
-                final ex = entry.value;
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(kGapPage, 0, 8, 0),
-                  child: Row(
-                    children: [
-                      Expanded(child: Text(ex.name, style: T.body)),
-                      _valueTap(
-                        ex.targetSeries != null ? '${ex.targetSeries}×' : '–×',
-                        ex.targetSeries != null,
-                        () => _editTargetFor(i),
+              if (_selectedExercises.isNotEmpty)
+                Block(children: [
+                  ..._selectedExercises.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final ex = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(kBlockInset, 6, 4, 6),
+                      child: Row(
+                        children: [
+                          Expanded(child: Text(ex.name, style: T.body)),
+                          _valueTap(
+                            ex.targetSeries != null
+                                ? '${ex.targetSeries}×'
+                                : '–×',
+                            ex.targetSeries != null,
+                            () => _editTargetFor(i),
+                          ),
+                          _valueTap(
+                            ex.restSeconds != null
+                                ? formatRest(ex.restSeconds!)
+                                : '–:––',
+                            ex.restSeconds != null,
+                            () => _editRestFor(i),
+                          ),
+                          IconButton(
+                            onPressed: () => _toggleExercise(ex.name),
+                            icon: Icon(Icons.close, size: 18, color: kText2),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ],
                       ),
-                      _valueTap(
-                        ex.restSeconds != null
-                            ? formatRest(ex.restSeconds!)
-                            : '–:––',
-                        ex.restSeconds != null,
-                        () => _editRestFor(i),
-                      ),
-                      IconButton(
-                        onPressed: () => _toggleExercise(ex.name),
-                        icon: Icon(Icons.close, size: 18, color: kText3),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ],
-                  ),
-                );
-              }),
+                    );
+                  }),
+                ]),
 
               Padding(
-                padding: const EdgeInsets.fromLTRB(kGapPage, 18, kGapPage, 4),
+                padding: const EdgeInsets.fromLTRB(kGapPage, 24, kGapPage, 0),
                 child: AppSearchField(
                   hint: S.get('search_exercise'),
                   value: _search,
@@ -509,19 +507,20 @@ class _TemplateEditorScreenState extends State<_TemplateEditorScreen> {
               ),
               for (final entry in grouped.entries) ...[
                 SectionTitle(entry.key),
-                for (final ex in entry.value)
-                  ListRow(
-                    title: ex.name,
-                    onTap: () => _toggleExercise(ex.name),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: kGapPage, vertical: 12),
-                    trailing: Icon(
-                      _indexOfName(ex.name) >= 0 ? Icons.check : Icons.add,
-                      size: 22,
-                      color:
-                          _indexOfName(ex.name) >= 0 ? kAccent : kText3,
+                Block(children: [
+                  for (final ex in entry.value)
+                    ListRow(
+                      title: ex.name,
+                      titleColor: _indexOfName(ex.name) >= 0 ? kText2 : null,
+                      onTap: () => _toggleExercise(ex.name),
+                      trailing: Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: _indexOfName(ex.name) >= 0
+                            ? Icon(Icons.check, size: 22, color: kAccentText)
+                            : PlusIcon(size: 22),
+                      ),
                     ),
-                  ),
+                ]),
               ],
             ],
           ),

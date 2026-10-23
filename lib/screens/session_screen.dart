@@ -114,19 +114,20 @@ class SessionScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: kBottomSafeSpace),
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(kGapPage, 0, kGapPage, 6),
+                  padding: const EdgeInsets.fromLTRB(kGapPage, 8, kGapPage, 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(title[0].toUpperCase() + title.substring(1),
-                          style: T.display.copyWith(fontSize: 26)),
-                      const SizedBox(height: 4),
+                          style: T.display
+                              .copyWith(fontSize: 34, letterSpacing: -1)),
+                      const SizedBox(height: 10),
                       Wrap(
-                        spacing: 6,
+                        spacing: 8,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(DateFormat('yyyy', locale).format(date),
-                              style: T.meta),
+                              style: T.displayMeta),
                           if (dayName != null || state.templates.isNotEmpty) ...[
                             Text('·', style: T.meta.copyWith(color: kText3)),
                             DayChip(
@@ -153,35 +154,27 @@ class SessionScreen extends StatelessWidget {
                     child: EmptyState(title: S.get('no_exercises_in_session')),
                   ),
                 for (var i = 0; i < session.exercises.length; i++) ...[
-                  if (i > 0)
-                    const Divider(
-                        indent: kGapPage, endIndent: kGapPage, height: 12),
+                  if (i > 0) const SizedBox(height: kGapCard),
                   ExerciseBlock(
                     key: ValueKey('past-${session.exercises[i].name}'),
                     session: session,
                     exIdx: i,
                   ),
                 ],
-              ],
-            ),
-            floatingActionButton: FloatingActionButton.extended(
-              heroTag: 'session-fab',
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ExercisePickerScreen(session: session),
+                // Come in Oggi: si aggiunge in fondo, niente bottone flottante.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(kGapPage, 16, kGapPage, 0),
+                  child: DashedButton(
+                    label: S.get('add_an_exercise'),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ExercisePickerScreen(session: session),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              backgroundColor: kAccent,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              highlightElevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(kRadiusControl + 2)),
-              icon: const Icon(Icons.add, size: 22),
-              label: Text(S.get('exercise_short'),
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 15)),
+              ],
             ),
           ),
         );

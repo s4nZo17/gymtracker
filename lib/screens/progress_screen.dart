@@ -46,20 +46,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
         children: [
           PageHeader(
             title: S.get('progress'),
-            subtitle: '${state.library.length} ${S.get('exercises_count')}',
-            trailing: _tab == 0
-                ? HeaderAction(
-                    label: S.get('new'),
-                    icon: Icons.add,
-                    onTap: () => _newExercise(state),
-                  )
-                : null,
+            meta: '${state.library.length} ${S.get('exercises_count')}',
             bottom: SegmentedToggle(
               labels: [S.get('exercises'), S.get('body_map')],
               selected: _tab,
               onChanged: (i) => setState(() => _tab = i),
             ),
           ),
+          const SizedBox(height: 12),
           Expanded(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 180),
@@ -99,12 +93,25 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
     return Column(
       children: [
+        // Ricerca e, accanto, il "+" per un esercizio nuovo.
         Padding(
-          padding: const EdgeInsets.fromLTRB(kGapPage, 4, kGapPage, 10),
-          child: AppSearchField(
-            hint: S.get('search_exercise'),
-            value: _search,
-            onChanged: (v) => setState(() => _search = v),
+          padding: const EdgeInsets.fromLTRB(kGapPage, 0, kGapPage, 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: AppSearchField(
+                  hint: S.get('search_exercise'),
+                  value: _search,
+                  onChanged: (v) => setState(() => _search = v),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SquareIconButton(
+                icon: PlusIcon(size: 22),
+                tooltip: S.get('new'),
+                onTap: () => _newExercise(state),
+              ),
+            ],
           ),
         ),
         CategoryFilterBar(
@@ -123,13 +130,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       : S.get('try_other_search'),
                 )
               : ListView(
-                  padding:
-                      const EdgeInsets.only(top: 4, bottom: kBottomSafeSpace),
+                  padding: const EdgeInsets.only(bottom: kBottomSafeSpace),
                   children: [
                     for (final entry in grouped.entries) ...[
                       SectionTitle(entry.key),
-                      for (final ex in entry.value)
-                        _row(ex, summaries[ex.name.trim().toLowerCase()]),
+                      Block(children: [
+                        for (final ex in entry.value)
+                          _row(ex, summaries[ex.name.trim().toLowerCase()]),
+                      ]),
                     ],
                   ],
                 ),
@@ -144,10 +152,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
       final delta = sum.delta;
       subtitle = Text.rich(
         TextSpan(children: [
-          TextSpan(text: '${sum.sessions} ${S.get(sum.sessions == 1 ? 'session_short' : 'sessions_short')}'),
+          TextSpan(
+              text:
+                  '${sum.sessions} ${S.get(sum.sessions == 1 ? 'session_short' : 'sessions_short')}'),
           if (delta.abs() > 0.01)
             TextSpan(
-              text: '  ${delta > 0 ? '+' : '−'}${fmtNum(delta.abs())} kg',
+              text: ' · ${delta > 0 ? '+' : '−'}${fmtNum(delta.abs())} kg',
               style: TextStyle(
                 color: delta > 0 ? kGreen : kRed,
                 fontWeight: FontWeight.w500,
@@ -162,15 +172,18 @@ class _ProgressScreenState extends State<ProgressScreen> {
       title: ex.name,
       subtitleWidget: subtitle,
       subtitle: sum == null ? S.get('never_trained') : null,
+      minHeight: 70,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (sum != null)
             Text('${fmtNum(sum.bestMax)} kg',
-                style: T.meta.copyWith(
-                    color: kText, fontWeight: FontWeight.w500,
+                style: TextStyle(
+                    fontSize: 15,
+                    color: kText,
+                    fontWeight: FontWeight.w600,
                     fontFeatures: kTabular)),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
           RowChevron(),
         ],
       ),
@@ -214,8 +227,7 @@ class ExerciseProgressScreen extends StatefulWidget {
   const ExerciseProgressScreen({super.key, required this.exName});
 
   @override
-  State<ExerciseProgressScreen> createState() =>
-      _ExerciseProgressScreenState();
+  State<ExerciseProgressScreen> createState() => _ExerciseProgressScreenState();
 }
 
 class _ExerciseProgressScreenState extends State<ExerciseProgressScreen> {
@@ -300,14 +312,16 @@ class _ExerciseProgressScreenState extends State<ExerciseProgressScreen> {
         padding: const EdgeInsets.only(bottom: kBottomSafeSpace),
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(kGapPage, 0, kGapPage, 0),
+            padding: const EdgeInsets.fromLTRB(kGapPage, 8, kGapPage, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_name, style: T.display.copyWith(fontSize: 26)),
+                Text(_name,
+                    style: T.display.copyWith(fontSize: 36, letterSpacing: -1)),
                 if (entry != null && muscleSummary(entry).isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(muscleSummary(entry), style: T.meta),
+                  const SizedBox(height: 8),
+                  Text(muscleSummary(entry),
+                      style: T.meta.copyWith(fontSize: 15)),
                 ],
               ],
             ),
@@ -336,79 +350,64 @@ class _ExerciseProgressScreenState extends State<ExerciseProgressScreen> {
     final improvement = lastW - firstW;
 
     return [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(kGapPage, 26, kGapPage, 0),
-        child: Row(
-          children: [
-            Expanded(
-                child:
-                    Metric(value: '${fmtNum(maxW)} kg', label: S.get('record'))),
-            Expanded(
-                child: Metric(
-                    value: '${data.length}', label: S.get('total_sessions'))),
-            Expanded(
-              child: Metric(
-                value:
-                    '${improvement >= 0 ? '+' : '−'}${fmtNum(improvement.abs())} kg',
-                label: S.get('total_improvement'),
-                valueColor: improvement > 0
-                    ? kGreen
-                    : (improvement < 0 ? kRed : null),
-              ),
-            ),
-          ],
+      const SizedBox(height: 24),
+      StatsBlock(metrics: [
+        Metric(value: '${fmtNum(maxW)} kg', label: S.get('record')),
+        Metric(value: '${data.length}', label: S.get('total_sessions')),
+        Metric(
+          value:
+              '${improvement >= 0 ? '+' : '−'}${fmtNum(improvement.abs())} kg',
+          label: S.get('total_improvement'),
+          valueColor:
+              improvement > 0 ? kGreen : (improvement < 0 ? kRed : null),
+        ),
+      ]),
+      SectionTitle(
+        _chartIndex == 0 ? S.get('weight_tab') : S.get('volume_tab'),
+        trailing: SegmentedToggle(
+          compact: true,
+          labels: [S.get('weight_short'), S.get('volume_tab')],
+          selected: _chartIndex,
+          onChanged: (i) => setState(() => _chartIndex = i),
         ),
       ),
       Padding(
-        padding: const EdgeInsets.fromLTRB(kGapPage, 28, kGapPage, 0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                _chartIndex == 0 ? S.get('weight_tab') : S.get('volume_tab'),
-                style: T.label,
-              ),
+        padding: const EdgeInsets.symmetric(horizontal: kGapPage),
+        child: AppCard(
+          padding: const EdgeInsets.fromLTRB(8, 18, 16, 8),
+          child: SizedBox(
+            height: 200,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: _chartIndex == 0
+                  ? KeyedSubtree(
+                      key: const ValueKey('w'),
+                      child: _buildWeightChart(data, dateFmt))
+                  : KeyedSubtree(
+                      key: const ValueKey('v'),
+                      child: _buildVolumeChart(data, dateFmt)),
             ),
-            SegmentedToggle(
-              compact: true,
-              labels: [S.get('weight_short'), S.get('volume_tab')],
-              selected: _chartIndex,
-              onChanged: (i) => setState(() => _chartIndex = i),
-            ),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(kGapPage - 8, 18, kGapPage, 0),
-        child: SizedBox(
-          height: 220,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: _chartIndex == 0
-                ? KeyedSubtree(
-                    key: const ValueKey('w'),
-                    child: _buildWeightChart(data, dateFmt))
-                : KeyedSubtree(
-                    key: const ValueKey('v'),
-                    child: _buildVolumeChart(data, dateFmt)),
           ),
         ),
       ),
-      SectionTitle(S.get('recent_sessions'),
-          padding: const EdgeInsets.fromLTRB(kGapPage, 30, kGapPage, 6)),
-      ...data.reversed.take(8).map(
-            (d) => ListRow(
-              title: '${fmtNum(d['maxWeight'] as double)} kg',
-              subtitle:
-                  '${d['series']} ${S.get('series')} · ${S.get('volume_tab').toLowerCase()} ${(d['totalVolume'] as double).toStringAsFixed(0)}',
-              trailing: Text(
+      SectionTitle(S.get('recent_sessions')),
+      Block(children: [
+        for (final d in data.reversed.take(8))
+          ListRow(
+            title: '${fmtNum(d['maxWeight'] as double)} kg',
+            titleStyle: T.title.copyWith(fontSize: 16),
+            subtitle:
+                '${d['series']} ${S.get('series')} · ${S.get('volume_tab').toLowerCase()} ${(d['totalVolume'] as double).toStringAsFixed(0)}',
+            trailing: Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Text(
                 _formatDateLabel(d['date'].toString(), dateFmt),
                 style: T.meta.copyWith(fontFeatures: kTabular),
               ),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: kGapPage, vertical: 11),
             ),
+            minHeight: 66,
           ),
+      ]),
     ];
   }
 
@@ -462,8 +461,7 @@ class _ExerciseProgressScreenState extends State<ExerciseProgressScreen> {
           show: true,
           drawVerticalLine: false,
           horizontalInterval: step,
-          getDrawingHorizontalLine: (_) =>
-              FlLine(color: kLine, strokeWidth: 1),
+          getDrawingHorizontalLine: (_) => FlLine(color: kLine, strokeWidth: 1),
         ),
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
@@ -495,7 +493,8 @@ class _ExerciseProgressScreenState extends State<ExerciseProgressScreen> {
               reservedSize: 40,
             ),
           ),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           rightTitles:
               const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
@@ -505,18 +504,18 @@ class _ExerciseProgressScreenState extends State<ExerciseProgressScreen> {
               .map((_) => TouchedSpotIndicatorData(
                     FlLine(color: kSurface3, strokeWidth: 1),
                     FlDotData(
-                      getDotPainter: (s, _, __, ___) => FlDotCirclePainter(
-                        radius: 4,
+                      getDotPainter: (s, _, __, ___) => FlDotSquarePainter(
+                        size: 8,
                         color: kAccent,
                         strokeWidth: 2,
-                        strokeColor: kBg,
+                        strokeColor: kSurface,
                       ),
                     ),
                   ))
               .toList(),
           touchTooltipData: LineTouchTooltipData(
             getTooltipColor: (_) => kText,
-            tooltipRoundedRadius: 8,
+            tooltipRoundedRadius: kRadius,
             getTooltipItems: (spots) => spots
                 .map(
                   (s) => LineTooltipItem(
@@ -541,23 +540,17 @@ class _ExerciseProgressScreenState extends State<ExerciseProgressScreen> {
             dotData: FlDotData(
               show: true,
               checkToShowDot: (spot, _) => spot.x == spots.last.x,
-              getDotPainter: (spot, _, __, ___) => FlDotCirclePainter(
-                radius: 4,
+              // Quadratino, non pallino: niente forme tonde nell'app.
+              getDotPainter: (spot, _, __, ___) => FlDotSquarePainter(
+                size: 8,
                 color: kAccent,
-                strokeWidth: 2,
-                strokeColor: kBg,
+                strokeWidth: 0,
               ),
             ),
+            // Area piena e piatta: niente sfumature.
             belowBarData: BarAreaData(
               show: true,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  kAccent.withValues(alpha: 0.10),
-                  kAccent.withValues(alpha: 0.0)
-                ],
-              ),
+              color: kAccent.withValues(alpha: 0.10),
             ),
           ),
         ],
@@ -577,8 +570,7 @@ class _ExerciseProgressScreenState extends State<ExerciseProgressScreen> {
         gridData: FlGridData(
           show: true,
           horizontalInterval: step,
-          getDrawingHorizontalLine: (_) =>
-              FlLine(color: kLine, strokeWidth: 1),
+          getDrawingHorizontalLine: (_) => FlLine(color: kLine, strokeWidth: 1),
           drawVerticalLine: false,
         ),
         titlesData: FlTitlesData(
@@ -613,7 +605,8 @@ class _ExerciseProgressScreenState extends State<ExerciseProgressScreen> {
               reservedSize: 40,
             ),
           ),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           rightTitles:
               const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
@@ -621,7 +614,7 @@ class _ExerciseProgressScreenState extends State<ExerciseProgressScreen> {
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
             getTooltipColor: (_) => kText,
-            tooltipRoundedRadius: 8,
+            tooltipRoundedRadius: kRadius,
             tooltipPadding:
                 const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             fitInsideVertically: true,
@@ -644,7 +637,7 @@ class _ExerciseProgressScreenState extends State<ExerciseProgressScreen> {
                           ? kAccent
                           : kAccent.withValues(alpha: 0.35),
                       width: data.length > 12 ? 7 : (data.length > 6 ? 11 : 18),
-                      borderRadius: BorderRadius.circular(3),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ],
                 ))

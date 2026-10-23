@@ -10,6 +10,9 @@
 // "Petto" non e' confrontabile con la Pec fly a inizio "Upper". Quando il
 // contesto manca (allenamento libero, o prima volta in quel giorno) le
 // occorrenze si elencano tutte, con giorno e data, e sceglie l'utente.
+//
+// Il record non c'e' piu': in palestra serve sapere cosa hai fatto l'ultima
+// volta, il massimo di sempre si guarda in Progressi.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,8 +31,6 @@ class SeriesSheet extends StatefulWidget {
   /// Nome del giorno preimpostato della sessione in corso; null = libero.
   final String? currentDayName;
 
-  /// Record: sempre globale, mai filtrato per giorno.
-  final List<Series>? bestSeries;
   final Series? editSeries;
   final String dateFormat;
   final Function(Series) onSave;
@@ -40,7 +41,6 @@ class SeriesSheet extends StatefulWidget {
     required this.seriesNumber,
     this.history = ExerciseHistory.empty,
     this.currentDayName,
-    this.bestSeries,
     this.editSeries,
     this.dateFormat = 'dd-MM',
     required this.onSave,
@@ -52,7 +52,6 @@ class SeriesSheet extends StatefulWidget {
     required int seriesNumber,
     ExerciseHistory history = ExerciseHistory.empty,
     String? currentDayName,
-    List<Series>? bestSeries,
     Series? editSeries,
     String dateFormat = 'dd-MM',
     required Function(Series) onSave,
@@ -66,7 +65,6 @@ class SeriesSheet extends StatefulWidget {
           seriesNumber: seriesNumber,
           history: history,
           currentDayName: currentDayName,
-          bestSeries: bestSeries,
           editSeries: editSeries,
           dateFormat: dateFormat,
           onSave: onSave,
@@ -208,8 +206,6 @@ class _SeriesSheetState extends State<SeriesSheet> {
     HapticFeedback.selectionClick();
   }
 
-  void _fillFromBest() => _fillFromRef(widget.bestSeries);
-
   void _stepWeight(double delta) {
     final current = double.tryParse(_weightCtrl.text.replaceAll(',', '.')) ?? 0;
     final next = (current + delta).clamp(0, 999).toDouble();
@@ -278,23 +274,23 @@ class _SeriesSheetState extends State<SeriesSheet> {
   }) {
     Widget nudge(IconData icon, VoidCallback onTap) => InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(kRadius),
           child: SizedBox(
-            width: 34,
-            height: 40,
-            child: Icon(icon, size: 17, color: kText3),
+            width: 36,
+            height: 52,
+            child: Icon(icon, size: 20, color: kText2),
           ),
         );
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),
+      padding: const EdgeInsets.fromLTRB(4, 10, 4, 4),
       decoration: BoxDecoration(
         color: kSurface2,
-        borderRadius: BorderRadius.circular(kRadiusControl + 2),
+        borderRadius: BorderRadius.circular(kRadius),
       ),
       child: Column(
         children: [
-          Text(label, style: T.label.copyWith(fontSize: 12)),
+          Text(label.toUpperCase(), style: T.section),
           Row(
             children: [
               nudge(Icons.remove, onMinus),
@@ -305,7 +301,7 @@ class _SeriesSheetState extends State<SeriesSheet> {
                   keyboardType: keyboardType ??
                       const TextInputType.numberWithOptions(decimal: true),
                   textAlign: TextAlign.center,
-                  style: T.number.copyWith(fontSize: 30),
+                  style: T.number.copyWith(fontSize: 40, letterSpacing: -1),
                   decoration: const InputDecoration(
                     filled: false,
                     isDense: true,
@@ -341,7 +337,6 @@ class _SeriesSheetState extends State<SeriesSheet> {
     final history = widget.history;
     final sameDay = history.sameDay;
     final inPresetDay = widget.currentDayName != null;
-    final hasBest = widget.bestSeries != null && widget.bestSeries!.isNotEmpty;
     final fallbackHits = _fallbackHits;
 
     return Padding(
@@ -350,41 +345,32 @@ class _SeriesSheetState extends State<SeriesSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           Text.rich(
             TextSpan(children: [
               TextSpan(text: widget.exerciseName),
               TextSpan(
                 text: '   ${S.get('series_n')} ${widget.seriesNumber}',
-                style: T.meta.copyWith(fontSize: 14, color: kText3),
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w400, color: kText2),
               ),
             ]),
-            style: T.title.copyWith(fontSize: 19),
+            style: T.title.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
           // Riga principale: l'ultima volta nello STESSO giorno preimpostato.
-          // Senza contesto resta solo il record (globale).
           if (sameDay != null)
             LastSessionCard(
               date:
                   '${sameDay.dayName ?? S.get('free_workout')} · ${formatShortDate(sameDay.sessionDate, widget.dateFormat)}',
               series: sameDay.series,
-              bestSeries: widget.bestSeries,
               currentSeriesIndex: widget.seriesNumber - 1,
               onUseSeries: () => _fillFromHit(sameDay),
-              onUseBestSeries: _fillFromBest,
-            )
-          else if (hasBest)
-            LastSessionCard(
-              date: '',
-              series: const [],
-              bestSeries: widget.bestSeries,
-              currentSeriesIndex: widget.seriesNumber - 1,
-              onUseBestSeries: _fillFromBest,
             ),
 
           if (fallbackHits.isNotEmpty) ...[
+            const SizedBox(height: 10),
             Text(
               // In un giorno preimpostato senza precedenti va detto perche'
               // i numeri qui sotto arrivano da un'altra giornata.
@@ -393,7 +379,7 @@ class _SeriesSheetState extends State<SeriesSheet> {
                   : (sameDay != null
                       ? S.get('last_other_day')
                       : S.get('last_occurrences')),
-              style: T.label.copyWith(fontSize: 12.5),
+              style: TextStyle(fontSize: 13, color: kText2),
             ),
             ...fallbackHits.map(
               (hit) => HistoryHitRow(
@@ -407,6 +393,7 @@ class _SeriesSheetState extends State<SeriesSheet> {
             const SizedBox(height: 14),
           ],
 
+          if (fallbackHits.isEmpty) const SizedBox(height: 14),
           // Peso e reps affiancati: lo sheet e' piu' corto e "Salva serie"
           // resta visibile anche con la tastiera aperta.
           Row(
@@ -420,7 +407,7 @@ class _SeriesSheetState extends State<SeriesSheet> {
                   onPlus: () => _stepWeight(1),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 // Le reps restano testo: accettano anche "ced".
                 child: _numberBox(
@@ -434,7 +421,7 @@ class _SeriesSheetState extends State<SeriesSheet> {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
 
           // Tipo serie: tre pastiglie. Il colore compare solo se scegli un
           // tipo speciale, ed e' lo stesso del segno che vedrai nella lista.
@@ -526,7 +513,7 @@ class _SeriesSheetState extends State<SeriesSheet> {
             ),
           ],
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 18),
           if (_missingValues)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -535,6 +522,11 @@ class _SeriesSheetState extends State<SeriesSheet> {
             ),
           ElevatedButton(
             onPressed: _save,
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 56),
+              textStyle:
+                  const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+            ),
             child: Text(widget.editSeries != null
                 ? S.get('update_series')
                 : S.get('save_series')),

@@ -5,7 +5,6 @@
 // Nessuna dipendenza esterna.
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../theme.dart';
 import '../l10n/strings.dart';
 
@@ -166,7 +165,7 @@ class _TourOverlayState extends State<_TourOverlay> {
       padding: const EdgeInsets.fromLTRB(18, 16, 10, 8),
       decoration: BoxDecoration(
         color: kSurface,
-        borderRadius: BorderRadius.circular(kRadiusSheet - 4),
+        borderRadius: BorderRadius.circular(kRadius),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,7 +181,7 @@ class _TourOverlayState extends State<_TourOverlay> {
             padding: const EdgeInsets.only(right: 8),
             child: Text(
               step.title,
-              style: GoogleFonts.inter(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
                 color: kText,
@@ -210,7 +209,7 @@ class _TourOverlayState extends State<_TourOverlay> {
               const Spacer(),
               TextButton(
                 onPressed: _next,
-                style: TextButton.styleFrom(foregroundColor: kAccent),
+                style: TextButton.styleFrom(foregroundColor: kAccentText),
                 child: Text(
                   isLast ? S.get('tour_done') : S.get('next'),
                   style: const TextStyle(
@@ -234,7 +233,7 @@ class _SpotlightPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final bg = Path()..addRect(Offset.zero & size);
     final cut = Path()
-      ..addRRect(RRect.fromRectAndRadius(hole, const Radius.circular(16)));
+      ..addRRect(RRect.fromRectAndRadius(hole, const Radius.circular(kRadius + 4)));
     final path = Path.combine(PathOperation.difference, bg, cut);
 
     canvas.drawPath(

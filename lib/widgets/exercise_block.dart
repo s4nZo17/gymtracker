@@ -1,7 +1,7 @@
 // lib/widgets/exercise_block.dart
 //
-// Un esercizio dentro una sessione: nome, recupero, nota, righe delle serie e
-// "+ Aggiungi serie". E' lo STESSO blocco in Oggi e in una sessione dello
+// Un esercizio dentro una sessione: un blocco grigio con nome, recupero,
+// nota, righe delle serie e "+ Aggiungi serie" in fondo. E' lo STESSO blocco in Oggi e in una sessione dello
 // Storico: prima erano due implementazioni diverse (card con 4 bottoni in
 // Oggi, riga con 5 icone nello Storico) per fare le stesse cose.
 //
@@ -9,7 +9,6 @@
 // stanno in un menu con le voci scritte, non in una fila di icone.
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/strings.dart';
@@ -51,7 +50,6 @@ class ExerciseBlock extends StatelessWidget {
           seriesIndex == null ? exercise.series.length + 1 : seriesIndex + 1,
       history: state.historyFor(session, exercise.name),
       currentDayName: state.dayNameOf(session),
-      bestSeries: state.getBestSeriesEver(exercise.name),
       editSeries: editSeries,
       dateFormat: state.prefs.dateFormat,
       onSave: (series) {
@@ -183,121 +181,136 @@ class ExerciseBlock extends StatelessWidget {
         ? '${ex.series.length}/${ex.targetSeries}'
         : '${ex.series.length}';
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(kGapPage, 12, kGapPage - 6, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Intestazione: nome + conteggio, recupero, menu
-          InkWell(
-            borderRadius: BorderRadius.circular(8),
-            onTap: () => _showMenu(context, state, ex, lastNote, rest),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Text.rich(
+    final header = InkWell(
+      onTap: () => _showMenu(context, state, ex, lastNote, rest),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+            kBlockInset, 12, 4, ex.note != null || lastNote != null ? 2 : 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: ex.name),
                     TextSpan(
-                      children: [
-                        TextSpan(text: ex.name),
-                        TextSpan(
-                          text: '  $count',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: kText3,
-                            fontFeatures: kTabular,
-                          ),
-                        ),
-                      ],
+                      text: '  $count',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: kText2,
+                        fontFeatures: kTabular,
+                      ),
                     ),
-                    style: T.title,
+                  ],
+                ),
+                style: T.title,
+              ),
+            ),
+            RestBadge(
+              seconds: rest,
+              inherited: ex.restSeconds == null,
+              onTap: () => _editRest(context, state, rest),
+            ),
+            IconButton(
+              onPressed: () => _showMenu(context, state, ex, lastNote, rest),
+              icon: Icon(Icons.more_horiz, color: kText2, size: 22),
+              visualDensity: VisualDensity.compact,
+              tooltip: S.get('more'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final rows = <Widget>[
+      ...ex.series.asMap().entries.map((e) {
+        final s = e.value;
+        final i = e.key;
+        return SeriesRow(
+          index: i,
+          series: s,
+          onTap: () => _openSeriesSheet(context, state, ex, seriesIndex: i),
+          onDelete: () {
+            state.removeSeriesFromSession(session, exIdx, i);
+            showAppSnack(
+              context,
+              S.get('series_deleted'),
+              onUndo: () => state.insertSeriesInSession(session, exIdx, i, s),
+            );
+          },
+        );
+      }),
+      // Serie previste dal giorno e non ancora fatte: promemoria, non dati
+      // finti nello storico.
+      ...List.generate(
+        ex.pendingTargetSeries,
+        (offset) => PendingSeriesRow(
+          index: ex.series.length + offset,
+          onTap: () => _openSeriesSheet(context, state, ex),
+        ),
+      ),
+      // Azione principale del blocco.
+      InkWell(
+        onTap: () => _openSeriesSheet(context, state, ex),
+        child: SizedBox(
+          height: 50,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: kBlockInset),
+            child: Row(
+              children: [
+                PlusIcon(size: 18),
+                const SizedBox(width: 10),
+                Text(
+                  S.get('add_series_short'),
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: kAccentText,
                   ),
-                ),
-                RestBadge(
-                  seconds: rest,
-                  inherited: ex.restSeconds == null,
-                  onTap: () => _editRest(context, state, rest),
-                ),
-                IconButton(
-                  onPressed: () => _showMenu(context, state, ex, lastNote, rest),
-                  icon: Icon(Icons.more_horiz, color: kText3, size: 20),
-                  visualDensity: VisualDensity.compact,
-                  tooltip: S.get('more'),
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    ];
 
-          // Nota di oggi, o quella dell'ultima volta come promemoria.
-          if (ex.note != null || lastNote != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 6, bottom: 4),
-              child: GestureDetector(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: kGapPage),
+      child: Material(
+        color: blockColor,
+        borderRadius: BorderRadius.circular(kRadius),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            header,
+            // Nota di oggi, o quella dell'ultima volta come promemoria.
+            if (ex.note != null || lastNote != null)
+              GestureDetector(
                 onTap: () => _editNote(context, state, ex, lastNote),
-                child: Text(
-                  ex.note ?? lastNote!,
-                  style: T.meta.copyWith(
-                    color: ex.note != null ? kText2 : kText3,
-                    fontStyle:
-                        ex.note != null ? FontStyle.normal : FontStyle.italic,
-                    height: 1.4,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.fromLTRB(kBlockInset, 0, 16, 8),
+                  child: Text(
+                    ex.note ?? lastNote!,
+                    style: T.meta.copyWith(
+                      color: ex.note != null ? kTextSoft : kText2,
+                      fontStyle:
+                          ex.note != null ? FontStyle.normal : FontStyle.italic,
+                      height: 1.4,
+                    ),
                   ),
                 ),
               ),
-            ),
-
-          const SizedBox(height: 2),
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: Column(
-              children: [
-                ...ex.series.asMap().entries.map((e) {
-                  final s = e.value;
-                  final i = e.key;
-                  return SeriesRow(
-                    index: i,
-                    series: s,
-                    onTap: () =>
-                        _openSeriesSheet(context, state, ex, seriesIndex: i),
-                    onDelete: () {
-                      state.removeSeriesFromSession(session, exIdx, i);
-                      showAppSnack(
-                        context,
-                        S.get('series_deleted'),
-                        onUndo: () =>
-                            state.insertSeriesInSession(session, exIdx, i, s),
-                      );
-                    },
-                  );
-                }),
-                // Serie previste dal giorno e non ancora fatte: promemoria,
-                // non dati finti nello storico.
-                ...List.generate(
-                  ex.pendingTargetSeries,
-                  (offset) => PendingSeriesRow(
-                    index: ex.series.length + offset,
-                    onTap: () => _openSeriesSheet(context, state, ex),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Azione principale del blocco.
-          TextButton.icon(
-            onPressed: () => _openSeriesSheet(context, state, ex),
-            style: TextButton.styleFrom(
-              foregroundColor: kAccent,
-              padding: const EdgeInsets.only(right: 12),
-              minimumSize: const Size(0, 44),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            icon: const Icon(Icons.add, size: 19),
-            label: Text(S.get('add_series_short'),
-                style: const TextStyle(fontSize: 14.5)),
-          ),
-        ],
+            for (var i = 0; i < rows.length; i++) ...[
+              if (i > 0) const Divider(height: 1, indent: kBlockInset),
+              rows[i],
+            ],
+          ],
+        ),
       ),
     );
   }

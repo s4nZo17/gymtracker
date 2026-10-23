@@ -90,15 +90,16 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
             actions: [
               TextButton(
                 onPressed: () => _createNew(state),
+                style: TextButton.styleFrom(foregroundColor: kAccentText),
                 child: Text(S.get('new')),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
             ],
           ),
           body: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(kGapPage, 4, kGapPage, 10),
+                padding: const EdgeInsets.fromLTRB(kGapPage, 12, kGapPage, 12),
                 child: AppSearchField(
                   hint: S.get('search_exercise'),
                   value: _search,
@@ -121,13 +122,15 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
                       )
                     : ListView(
                         padding:
-                            const EdgeInsets.only(top: 4, bottom: kBottomSafeSpace),
+                            const EdgeInsets.only(bottom: kBottomSafeSpace),
                         children: [
                           for (final entry in grouped.entries) ...[
                             SectionTitle(entry.key),
-                            for (final ex in entry.value)
-                              _row(state, session, ex,
-                                  added.contains(ex.name.trim().toLowerCase())),
+                            Block(children: [
+                              for (final ex in entry.value)
+                                _row(state, session, ex,
+                                    added.contains(ex.name.trim().toLowerCase())),
+                            ]),
                           ],
                         ],
                       ),
@@ -148,17 +151,20 @@ class _ExercisePickerScreenState extends State<ExercisePickerScreen> {
         (history.anyDay.isEmpty ? null : history.anyDay.first);
     final subtitle = lastHit == null
         ? muscleSummary(ex)
-        : lastHit.series.map((s) => s.summary).join('  ');
+        : lastHit.series.map((s) => s.summary).join('   ');
 
     return ListRow(
       title: ex.name,
-      titleColor: alreadyAdded ? kText3 : null,
+      titleColor: alreadyAdded ? kText2 : null,
       subtitle: subtitle,
+      subtitleMaxLines: 1,
+      minHeight: 68,
       onTap: alreadyAdded ? null : () => _add(state, ex.name),
-      trailing: Icon(
-        alreadyAdded ? Icons.check : Icons.add,
-        size: 22,
-        color: alreadyAdded ? kAccent : kText3,
+      trailing: Padding(
+        padding: const EdgeInsets.only(right: 4),
+        child: alreadyAdded
+            ? Icon(Icons.check, size: 22, color: kAccentText)
+            : PlusIcon(size: 22),
       ),
     );
   }

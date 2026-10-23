@@ -9,6 +9,13 @@ class S {
 
   static final Map<String, Map<String, String>> _strings = {
     'it': {
+      // Redesign A
+      'or': 'oppure',
+      'add_an_exercise': 'Aggiungi un esercizio',
+      'no_templates_today': 'Non hai ancora creato un giorno preimpostato?',
+      'create_one': 'Creane uno',
+      'free_workout_long': 'Allenamento libero',
+      'workout_single': 'allenamento',
       // Revisione 2
       'mood_1': 'Malissimo',
       'mood_2': 'Male',
@@ -337,6 +344,13 @@ class S {
       'swipe_to_delete': 'Scorri una serie a sinistra per eliminarla',
     },
     'en': {
+      // Redesign A
+      'or': 'or',
+      'add_an_exercise': 'Add an exercise',
+      'no_templates_today': "Haven't created a preset day yet?",
+      'create_one': 'Create one',
+      'free_workout_long': 'Free workout',
+      'workout_single': 'workout',
       // Revisione 2
       'mood_1': 'Awful',
       'mood_2': 'Bad',

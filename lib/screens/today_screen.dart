@@ -1,13 +1,14 @@
 // lib/screens/today_screen.dart
 //
 // Oggi: l'allenamento in corso.
-// - Header: giorno della settimana, data e giorno preimpostato in una riga.
-// - Sessione vuota: i giorni preimpostati sono gia' li', un tocco e si parte.
-// - Sessione piena: un blocco per esercizio (lo stesso dello Storico).
-// - "Nuovo giorno" compare solo quando c'e' davvero qualcosa da chiudere.
+// - Header: giorno della settimana a sinistra, data in accento a destra.
+// - Sessione vuota: "GIORNI PREIMPOSTATI" in un blocco (un tocco sul giorno e
+//   si parte), poi "oppure" e il bottone tratteggiato per l'allenamento
+//   libero. Senza giorni, al loro posto l'invito a crearne uno.
+// - Sessione piena: sopra l'etichetta col giorno (si cambia da li') e
+//   "Finisci"; sotto un blocco per esercizio (lo stesso dello Storico).
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -31,15 +32,11 @@ class TodayScreen extends StatefulWidget {
 }
 
 class _TodayScreenState extends State<TodayScreen> {
-  /// Il FAB si ritira mentre scorri in giu' (cosi' non copre l'ultimo
-  /// "Aggiungi serie") e ricompare appena risali.
-  bool _fabVisible = true;
   final _scroll = ScrollController();
 
   /// Sessione mostrata all'ultimo build: quando cambia (Finisci, cambio di
-  /// giorno, annulla) la lista riparte dall'alto e il FAB torna visibile.
-  /// Prima restavi in fondo alla lista vecchia, e se avevi appena scorso in
-  /// giu' il FAB restava nascosto anche su una pagina che non scorre.
+  /// giorno, annulla) la lista riparte dall'alto. Prima restavi in fondo alla
+  /// lista vecchia.
   WorkoutSession? _shownSession;
 
   @override
@@ -48,23 +45,11 @@ class _TodayScreenState extends State<TodayScreen> {
     super.dispose();
   }
 
-  bool _onScroll(UserScrollNotification n) {
-    final canScroll = n.metrics.maxScrollExtent > 0;
-    if (n.direction == ScrollDirection.reverse && _fabVisible && canScroll) {
-      setState(() => _fabVisible = false);
-    } else if ((n.direction == ScrollDirection.forward || !canScroll) &&
-        !_fabVisible) {
-      setState(() => _fabVisible = true);
-    }
-    return false;
-  }
-
   void _onSessionChanged(WorkoutSession session) {
     if (identical(_shownSession, session)) return;
     final first = _shownSession == null;
     _shownSession = session;
     if (first) return;
-    _fabVisible = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) _scroll.jumpTo(0);
     });
@@ -77,6 +62,7 @@ class _TodayScreenState extends State<TodayScreen> {
     state.setSessionRating(session, mood);
   }
 
+  /// Allenamento libero: gli esercizi si scelgono al momento.
   void _openPicker(BuildContext context) {
     Navigator.push(
       context,
@@ -100,54 +86,26 @@ class _TodayScreenState extends State<TodayScreen> {
         final isStale = !isEmpty && !DateUtils.isSameDay(sessionDate, now);
         final weekday = DateFormat('EEEE', locale).format(sessionDate);
         final dayMonth = DateFormat('d MMMM', locale).format(sessionDate);
-        final dayName = state.dayNameOf(session);
-        final showDay = dayName != null || state.templates.isNotEmpty;
 
         return Scaffold(
           backgroundColor: kBg,
-          body: NotificationListener<UserScrollNotification>(
-            onNotification: _onScroll,
-            child: CustomScrollView(
-              controller: _scroll,
-              slivers: [
-                SliverToBoxAdapter(
-                  child: PageHeader(
-                    title: weekday[0].toUpperCase() + weekday.substring(1),
-                    subtitleWidget: Wrap(
-                      spacing: 6,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(dayMonth, style: T.meta),
-                        if (showDay && !isEmpty) ...[
-                          Text('·', style: T.meta.copyWith(color: kText3)),
-                          // Il giorno preimpostato rende confrontabili i
-                          // numeri: si vede e si cambia da qui.
-                          DayChip(
-                            dayName: dayName,
-                            onTap: () =>
-                                showSessionDayPicker(context, state, session),
-                          ),
-                        ],
-                        if (session.rating != null) ...[
-                          Text('·', style: T.meta.copyWith(color: kText3)),
-                          GestureDetector(
-                            onTap: () => _editMood(context, state),
-                            child: RatingBadge(session.rating!),
-                          ),
-                        ],
-                      ],
-                    ),
-                    trailing: isEmpty
-                        ? null
-                        : HeaderAction(
-                            key: TourKeys.newDayButton,
-                            label: S.get('finish'),
-                            icon: Icons.check,
-                            onTap: () => finishWorkoutFlow(context, state),
-                          ),
-                  ),
+          body: CustomScrollView(
+            controller: _scroll,
+            slivers: [
+              SliverToBoxAdapter(
+                child: PageHeader(
+                  title: weekday[0].toUpperCase() + weekday.substring(1),
+                  meta: dayMonth,
                 ),
-
+              ),
+              if (isEmpty)
+                SliverToBoxAdapter(
+                  child: _EmptyToday(
+                    state: state,
+                    onAddExercise: () => _openPicker(context),
+                  ),
+                )
+              else ...[
                 // Allenamento rimasto aperto da un altro giorno: lo si dice,
                 // senza chiuderlo da soli (si puo' finire dopo mezzanotte).
                 if (isStale)
@@ -156,93 +114,130 @@ class _TodayScreenState extends State<TodayScreen> {
                       onNewDay: () => finishWorkoutFlow(context, state),
                     ),
                   ),
-
-                if (isEmpty)
-                  SliverToBoxAdapter(
-                    child: _EmptyToday(
-                      state: state,
-                      onAddExercise: () => _openPicker(context),
-                    ),
-                  )
-                else ...[
-                  SliverList.separated(
-                    itemCount: session.exercises.length,
-                    itemBuilder: (_, i) => ExerciseBlock(
-                      // La chiave per nome tiene lo stato giusto quando un
-                      // esercizio viene eliminato o reinserito.
-                      key: ValueKey('today-${session.exercises[i].name}'),
-                      session: session,
-                      exIdx: i,
-                      live: true,
-                    ),
-                    separatorBuilder: (_, __) => const Divider(
-                        indent: kGapPage, endIndent: kGapPage, height: 12),
+                SliverToBoxAdapter(
+                  child: _WorkoutLabel(
+                    state: state,
+                    session: session,
+                    onEditMood: () => _editMood(context, state),
+                    topGap: isStale ? 16 : 28,
                   ),
-                  // Fine lista: e' qui che arrivi quando hai finito.
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                          kGapPage, 24, kGapPage, 0),
-                      child: ElevatedButton.icon(
-                        onPressed: () => finishWorkoutFlow(context, state),
-                        icon: const Icon(Icons.check, size: 20),
-                        label: Text(S.get('finish_workout')),
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                          kGapPage - 8, 8, kGapPage, 0),
-                      child: Center(
-                        child: TextButton.icon(
-                          key: TourKeys.templatesRow,
-                          onPressed: () => showTemplateSheet(context, state),
-                          style: TextButton.styleFrom(
-                              foregroundColor: kText3),
-                          icon: const Icon(Icons.bolt_outlined, size: 18),
-                          label: Text(S.get('switch_template'),
-                              style: const TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.w500)),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-
-                const SliverToBoxAdapter(
-                    child: SizedBox(height: kBottomSafeSpace)),
-              ],
-            ),
-          ),
-          floatingActionButton: AnimatedSlide(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOut,
-            offset: _fabVisible ? Offset.zero : const Offset(0, 1.6),
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 180),
-              opacity: _fabVisible ? 1 : 0,
-              child: FloatingActionButton.extended(
-                key: TourKeys.addExerciseFab,
-                heroTag: 'today-fab',
-                onPressed: () => _openPicker(context),
-                backgroundColor: kAccent,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                highlightElevation: 0,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(kRadiusControl + 2)),
-                icon: const Icon(Icons.add, size: 22),
-                label: Text(
-                  S.get('exercise_short'),
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 15),
                 ),
-              ),
-            ),
+                SliverList.separated(
+                  itemCount: session.exercises.length,
+                  itemBuilder: (_, i) => ExerciseBlock(
+                    // La chiave per nome tiene lo stato giusto quando un
+                    // esercizio viene eliminato o reinserito.
+                    key: ValueKey('today-${session.exercises[i].name}'),
+                    session: session,
+                    exIdx: i,
+                    live: true,
+                  ),
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(height: kGapCard),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.fromLTRB(kGapPage, 16, kGapPage, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        DashedButton(
+                          key: TourKeys.addExerciseFab,
+                          label: S.get('add_an_exercise'),
+                          onTap: () => _openPicker(context),
+                        ),
+                        const SizedBox(height: 12),
+                        // Fine lista: e' qui che arrivi quando hai finito.
+                        ElevatedButton.icon(
+                          onPressed: () => finishWorkoutFlow(context, state),
+                          icon: const Icon(Icons.check, size: 20),
+                          label: Text(S.get('finish_workout')),
+                        ),
+                        const SizedBox(height: 4),
+                        Center(
+                          child: TextButton(
+                            key: TourKeys.templatesRow,
+                            onPressed: () => showTemplateSheet(context, state),
+                            style: TextButton.styleFrom(
+                                foregroundColor: kText2),
+                            child: Text(S.get('switch_template'),
+                                style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              const SliverToBoxAdapter(
+                  child: SizedBox(height: kBottomSafeSpace)),
+            ],
           ),
         );
       },
+    );
+  }
+}
+
+// ─── ETICHETTA DELL'ALLENAMENTO ─────────────────────────────────────────────
+/// "PUSH DAY ▾ · 😊 ........ ✓ Finisci". Il giorno rende confrontabili i
+/// numeri: si vede e si cambia da qui; Finisci e' sempre a portata.
+class _WorkoutLabel extends StatelessWidget {
+  final AppState state;
+  final WorkoutSession session;
+  final VoidCallback onEditMood;
+  final double topGap;
+
+  const _WorkoutLabel({
+    required this.state,
+    required this.session,
+    required this.onEditMood,
+    required this.topGap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dayName = state.dayNameOf(session);
+    final canPickDay = dayName != null || state.templates.isNotEmpty;
+    return SectionTitle(
+      dayName ?? S.get('free_workout_long'),
+      padding: EdgeInsets.fromLTRB(kGapPage, topGap, kGapPage, 8),
+      onTap: canPickDay
+          ? () => showSessionDayPicker(context, state, session)
+          : null,
+      after: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (canPickDay) Icon(Icons.expand_more, size: 18, color: kText2),
+          if (session.rating != null) ...[
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onEditMood,
+              child: RatingBadge(session.rating!, showLabel: false),
+            ),
+          ],
+        ],
+      ),
+      trailing: Transform.translate(
+        // Il tocco e' largo 44, la scritta resta allineata al margine.
+        offset: const Offset(10, 0),
+        child: TextButton.icon(
+          key: TourKeys.newDayButton,
+          onPressed: () => finishWorkoutFlow(context, state),
+          style: TextButton.styleFrom(
+            foregroundColor: kAccentText,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            minimumSize: const Size(44, 44),
+          ),
+          icon: const Icon(Icons.check, size: 18),
+          label: Text(S.get('finish'),
+              style:
+                  const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+        ),
+      ),
     );
   }
 }
@@ -255,12 +250,12 @@ class _StaleBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(kGapPage, 6, kGapPage, 4),
+      padding: const EdgeInsets.fromLTRB(kGapPage, 24, kGapPage, 0),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+        padding: const EdgeInsets.fromLTRB(kBlockInset, 8, 6, 8),
         decoration: BoxDecoration(
-          color: kSurface2,
-          borderRadius: BorderRadius.circular(kRadiusControl + 2),
+          color: blockColor,
+          borderRadius: BorderRadius.circular(kRadius),
         ),
         child: Row(
           children: [
@@ -270,7 +265,7 @@ class _StaleBanner extends StatelessWidget {
             ),
             TextButton(
               onPressed: onNewDay,
-              style: TextButton.styleFrom(foregroundColor: kAccent),
+              style: TextButton.styleFrom(foregroundColor: kAccentText),
               child: Text(S.get('start_today')),
             ),
           ],
@@ -282,81 +277,157 @@ class _StaleBanner extends StatelessWidget {
 
 // ─── OGGI VUOTO ─────────────────────────────────────────────────────────────
 // Le due strade per iniziare sono visibili subito: i giorni preimpostati in
-// elenco (un tocco e si caricano) oppure il "+ Esercizio".
+// un blocco (un tocco e si caricano) oppure l'allenamento libero.
 class _EmptyToday extends StatelessWidget {
   final AppState state;
   final VoidCallback onAddExercise;
 
   const _EmptyToday({required this.state, required this.onAddExercise});
 
+  void _newTemplate(BuildContext context) => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const TemplateEditorScreen()),
+      );
+
+  void _editTemplate(BuildContext context, WorkoutTemplate t) => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => TemplateEditorScreen(existing: t)),
+      );
+
   @override
   Widget build(BuildContext context) {
     final templates = state.templates;
 
-    if (templates.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 60),
-        child: Column(
-          children: [
-            EmptyState(
-              title: S.get('ready_to_train'),
-              subtitle: S.get('ready_to_train_sub'),
-              actionLabel: S.get('add_exercise_action'),
-              onAction: onAddExercise,
-            ),
-            TextButton(
-              key: TourKeys.templatesRow,
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const TemplatesScreen()),
-              ),
-              style: TextButton.styleFrom(foregroundColor: kText3),
-              child: Text(S.get('create_template_hint'),
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w500)),
-            ),
-          ],
-        ),
-      );
-    }
-
     return Column(
-      key: TourKeys.templatesRow,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionTitle(
-          S.get('start_from_template'),
-          trailing: GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const TemplatesScreen()),
-            ),
-            child: Text(S.get('manage'),
-                style: T.label.copyWith(color: kText2)),
-          ),
+          S.get('templates'),
+          padding: const EdgeInsets.fromLTRB(kGapPage, 40, kGapPage, 8),
+          // Il "+" compare solo se c'e' gia' un giorno: senza, l'invito a
+          // crearne uno e' gia' il blocco qui sotto.
+          trailing: templates.isEmpty
+              ? null
+              : Transform.translate(
+                  // Tocco da 44, ma il "+" resta allineato al margine.
+                  offset: const Offset(11, 0),
+                  child: SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: InkResponse(
+                      onTap: () => _newTemplate(context),
+                      radius: 22,
+                      child: Center(child: PlusIcon(size: 22)),
+                    ),
+                  ),
+                ),
         ),
-        const Divider(indent: kGapPage, endIndent: kGapPage),
-        ...templates.map(
-          (t) => ListRow(
-            title: t.name,
-            subtitle: _templateSummary(t),
-            subtitleMaxLines: 1,
-            trailing: RowChevron(),
-            onTap: () => loadTemplateFlow(context, state, t),
+        if (templates.isEmpty)
+          _NoTemplates(
+            key: TourKeys.templatesRow,
+            onCreate: () => _newTemplate(context),
+          )
+        else
+          Block(
+            key: TourKeys.templatesRow,
+            children: [
+              for (final t in templates)
+                ListRow(
+                  title: t.name,
+                  titleColor: kAccentText,
+                  subtitle: _templateSummary(t),
+                  subtitleMaxLines: 1,
+                  minHeight: 76,
+                  trailing: Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: PlayIcon(size: 22),
+                  ),
+                  onTap: () => loadTemplateFlow(context, state, t),
+                  // Tieni premuto per modificarlo.
+                  onLongPress: () => _editTemplate(context, t),
+                ),
+            ],
           ),
-        ),
+        const SizedBox(height: 28),
         Padding(
-          padding: const EdgeInsets.fromLTRB(kGapPage, 18, kGapPage, 0),
-          child: Text(S.get('or_add_exercise'), style: T.label),
+          padding: const EdgeInsets.symmetric(horizontal: kGapPage),
+          child: OrSeparator(),
+        ),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: kGapPage),
+          child: DashedButton(
+            key: TourKeys.addExerciseFab,
+            label: S.get('add_an_exercise'),
+            onTap: onAddExercise,
+          ),
         ),
       ],
     );
   }
 
+  /// I primi tre esercizi, poi "+N" per gli altri.
   String _templateSummary(WorkoutTemplate t) {
     final names = t.exerciseNames;
     final shown = names.take(3).join(', ');
     final extra = names.length > 3 ? ' +${names.length - 3}' : '';
     return '$shown$extra';
+  }
+}
+
+/// Nessun giorno preimpostato: la domanda e il bottone per crearne uno.
+class _NoTemplates extends StatelessWidget {
+  final VoidCallback onCreate;
+  const _NoTemplates({super.key, required this.onCreate});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: kGapPage),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 40, 24, 32),
+        decoration: BoxDecoration(
+          color: blockColor,
+          borderRadius: BorderRadius.circular(kRadius),
+        ),
+        child: Column(
+          children: [
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 240),
+              child: Text(
+                S.get('no_templates_today'),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  height: 1.3,
+                  color: kText,
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(S.get('create_one'),
+                style: TextStyle(fontSize: 15, color: kText2)),
+            const SizedBox(height: 24),
+            // Grigio, non in accento: e' un invito, non l'azione principale.
+            Material(
+              color: kSurface3,
+              borderRadius: BorderRadius.circular(kRadius),
+              child: InkWell(
+                onTap: onCreate,
+                borderRadius: BorderRadius.circular(kRadius),
+                child: SizedBox(
+                  width: 64,
+                  height: 64,
+                  child: Center(
+                    child: PlusIcon(size: 32, color: kTextSoft),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

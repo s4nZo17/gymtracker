@@ -1,14 +1,14 @@
 // lib/widgets/widgets.dart
 //
-// Componenti condivisi della UI minimal.
+// Componenti condivisi del redesign "Lista".
 //
-// Il principio e' uno: meno contenitori. Le liste sono righe piatte separate
-// da una linea sottile, i badge sono testo, l'accento si usa solo per
-// l'azione principale. Se una schermata ha bisogno di un pezzo nuovo, va qui.
+// Il principio: i contenuti stanno in blocchi grigi (Block) con le righe
+// separate da una linea rientrata; sopra ogni blocco un'etichetta in
+// maiuscolo (SectionTitle). L'accento solo su cio' che si tocca per agire.
+// Se una schermata ha bisogno di un pezzo nuovo, va qui.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../models/models.dart';
 import '../models/muscle_groups.dart';
 import '../theme.dart';
@@ -34,8 +34,8 @@ Future<R?> showAppSheet<R>(
       maxHeight: media.size.height - media.padding.top - 12,
     ),
     builder: (sheetContext) => Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
+      padding: EdgeInsets.only(
+          bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
       child: Container(
         constraints: BoxConstraints(
           maxHeight: media.size.height - media.padding.top - 12,
@@ -50,12 +50,12 @@ Future<R?> showAppSheet<R>(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Container(
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: kSurface3,
+                  color: kDashed,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -77,7 +77,7 @@ class SheetTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(kGapPage, 16, 12, 8),
+        padding: const EdgeInsets.fromLTRB(kGapPage, 18, 12, 10),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -85,7 +85,9 @@ class SheetTitle extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(text, style: T.title.copyWith(fontSize: 19)),
+                  Text(text,
+                      style: T.title
+                          .copyWith(fontSize: 22, fontWeight: FontWeight.w700)),
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(subtitle!, style: T.meta),
@@ -178,61 +180,68 @@ void showAppSnackOn(
 }
 
 // ─── HEADER DI PAGINA ───────────────────────────────────────────────────────
-// Tutte le schede si aprono cosi': titolo grande, una riga di contesto,
-// azione opzionale a destra, eventuale riga sotto (ricerca o toggle).
+// Tutte le schede si aprono cosi': titolo grande a sinistra e, sulla stessa
+// linea di base, un dato in colore accento a destra ("23 ottobre",
+// "104 allenamenti"). Sotto, eventualmente, ricerca o toggle.
 class PageHeader extends StatelessWidget {
   final String title;
-  final String? subtitle;
-  final Widget? subtitleWidget;
+
+  /// Testo a destra del titolo, in accento.
+  final String? meta;
+
+  /// Al posto di [meta], quando a destra serve un'azione.
   final Widget? trailing;
   final Widget? bottom;
+
+  /// Spazio tra il titolo e [bottom].
+  final double bottomGap;
 
   const PageHeader({
     super.key,
     required this.title,
-    this.subtitle,
-    this.subtitleWidget,
+    this.meta,
     this.trailing,
     this.bottom,
+    this.bottomGap = 28,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
-          kGapPage, MediaQuery.of(context).padding.top + 18, kGapPage, 8),
+          kGapPage, MediaQuery.of(context).padding.top + 16, kGapPage, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: T.display),
-                    if (subtitleWidget != null) ...[
-                      const SizedBox(height: 4),
-                      subtitleWidget!,
-                    ] else if (subtitle != null) ...[
-                      const SizedBox(height: 4),
-                      Text(subtitle!, style: T.meta),
-                    ],
-                  ],
+                child: Text(
+                  title,
+                  style: T.display,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.fade,
                 ),
               ),
-              if (trailing != null) trailing!,
+              if (trailing != null)
+                trailing!
+              else if (meta != null) ...[
+                const SizedBox(width: 12),
+                Text(meta!, style: T.displayMeta),
+              ],
             ],
           ),
-          if (bottom != null) ...[const SizedBox(height: 16), bottom!],
+          if (bottom != null) ...[SizedBox(height: bottomGap), bottom!],
         ],
       ),
     );
   }
 }
 
-/// Bottone testuale compatto per l'header ("Nuovo giorno", "+ Nuovo"...).
+/// Bottone compatto ("+ Nuovo", "Crea"): grigio, o pieno in accento.
 class HeaderAction extends StatelessWidget {
   final String label;
   final IconData? icon;
@@ -251,24 +260,24 @@ class HeaderAction extends StatelessWidget {
   Widget build(BuildContext context) {
     final fg = accent ? Colors.white : kText;
     return Material(
-      color: accent ? kAccent : kSurface2,
-      borderRadius: BorderRadius.circular(kRadiusControl),
+      color: accent ? kAccent : kSurface3,
+      borderRadius: BorderRadius.circular(kRadius),
       child: InkWell(
-        borderRadius: BorderRadius.circular(kRadiusControl),
+        borderRadius: BorderRadius.circular(kRadius),
         onTap: onTap,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(icon != null ? 11 : 14, 8, 14, 8),
+          padding: EdgeInsets.fromLTRB(icon != null ? 12 : 16, 10, 16, 10),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 17, color: fg),
-                const SizedBox(width: 5),
+                Icon(icon, size: 18, color: fg),
+                const SizedBox(width: 6),
               ],
               Text(
                 label,
-                style: GoogleFonts.inter(
-                  fontSize: 13.5,
+                style: TextStyle(
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: fg,
                 ),
@@ -279,6 +288,225 @@ class HeaderAction extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Bottone quadrato con un'icona, alto come un campo di ricerca: il "+"
+/// accanto alla ricerca in Progressi.
+class SquareIconButton extends StatelessWidget {
+  final Widget icon;
+  final VoidCallback onTap;
+  final String? tooltip;
+  final double size;
+
+  const SquareIconButton({
+    super.key,
+    required this.icon,
+    required this.onTap,
+    this.tooltip,
+    this.size = 48,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final button = Material(
+      color: kSurface,
+      borderRadius: BorderRadius.circular(kRadius),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(kRadius),
+        onTap: onTap,
+        child: SizedBox(width: size, height: size, child: Center(child: icon)),
+      ),
+    );
+    return tooltip == null ? button : Tooltip(message: tooltip!, child: button);
+  }
+}
+
+// ─── ICONE A TRATTO ─────────────────────────────────────────────────────────
+// Il "+" e il play dell'app: disegnati a tratto, con estremita' arrotondate.
+// Le icone Material sono piene o col tratto sottile.
+
+/// "+" a tratto. [stroke] e' lo spessore della linea.
+class PlusIcon extends StatelessWidget {
+  final double size;
+  final Color? color;
+  final double stroke;
+  // Non const: legge i colori del tema (vedi RowChevron).
+  // ignore: prefer_const_constructors_in_immutables
+  PlusIcon({super.key, this.size = 22, this.color, this.stroke = 2.4});
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+        size: Size.square(size),
+        painter: _PlusPainter(color ?? kAccentText, stroke),
+      );
+}
+
+class _PlusPainter extends CustomPainter {
+  final Color color;
+  final double stroke;
+  _PlusPainter(this.color, this.stroke);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()
+      ..color = color
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.round;
+    // Stesse proporzioni del "+" a 24: braccia da 5 a 19.
+    final a = size.width * 5 / 24;
+    final b = size.width * 19 / 24;
+    final c = size.width / 2;
+    canvas.drawLine(Offset(a, c), Offset(b, c), p);
+    canvas.drawLine(Offset(c, a), Offset(c, b), p);
+  }
+
+  @override
+  bool shouldRepaint(_PlusPainter old) =>
+      old.color != color || old.stroke != stroke;
+}
+
+/// Triangolo del play, vuoto: solo il contorno, con gli angoli arrotondati.
+class PlayIcon extends StatelessWidget {
+  final double size;
+  final Color? color;
+  final double stroke;
+  // Non const: legge i colori del tema (vedi RowChevron).
+  // ignore: prefer_const_constructors_in_immutables
+  PlayIcon({super.key, this.size = 22, this.color, this.stroke = 2});
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+        size: Size.square(size),
+        painter: _PlayPainter(color ?? kText2, stroke),
+      );
+}
+
+class _PlayPainter extends CustomPainter {
+  final Color color;
+  final double stroke;
+  _PlayPainter(this.color, this.stroke);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final u = size.width / 24;
+    final path = Path()
+      ..moveTo(7 * u, 4.5 * u)
+      ..lineTo(19.5 * u, 12 * u)
+      ..lineTo(7 * u, 19.5 * u)
+      ..close();
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_PlayPainter old) =>
+      old.color != color || old.stroke != stroke;
+}
+
+// ─── BOTTONE TRATTEGGIATO ───────────────────────────────────────────────────
+/// "Aggiungi un esercizio  +": bordo tratteggiato, fondo trasparente. Dice
+/// "qui puoi aggiungere" senza pesare quanto un bottone pieno.
+class DashedButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const DashedButton({super.key, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(kRadius),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(kRadius),
+        onTap: onTap,
+        child: CustomPaint(
+          painter: _DashedBorderPainter(kDashed),
+          child: SizedBox(
+            height: 52,
+            width: double.infinity,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: kTextSoft,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                PlusIcon(size: 18),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DashedBorderPainter extends CustomPainter {
+  final Color color;
+  _DashedBorderPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rrect = RRect.fromRectAndRadius(
+      (Offset.zero & size).deflate(0.5),
+      const Radius.circular(kRadius - 0.5),
+    );
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    const dash = 5.0;
+    const gap = 4.0;
+    for (final metric in (Path()..addRRect(rrect)).computeMetrics()) {
+      var d = 0.0;
+      while (d < metric.length) {
+        canvas.drawPath(metric.extractPath(d, d + dash), paint);
+        d += dash + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedBorderPainter old) => old.color != color;
+}
+
+/// Separatore "—— oppure ——" fra due modi di fare la stessa cosa.
+class OrSeparator extends StatelessWidget {
+  // Non const: legge i colori del tema (vedi RowChevron).
+  // ignore: prefer_const_constructors_in_immutables
+  OrSeparator({super.key});
+
+  @override
+  Widget build(BuildContext context) => Row(
+        children: [
+          Expanded(child: Container(height: 1, color: kLine)),
+          const SizedBox(width: 12),
+          Text(
+            S.get('or'),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: kTextFaint,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Container(height: 1, color: kLine)),
+        ],
+      );
 }
 
 // ─── CAMPO DI RICERCA ───────────────────────────────────────────────────────
@@ -334,9 +562,12 @@ class _AppSearchFieldState extends State<AppSearchField> {
       decoration: InputDecoration(
         hintText: widget.hint,
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        prefixIcon: Icon(Icons.search, color: kText3, size: 20),
-        prefixIconConstraints: const BoxConstraints(minWidth: 40),
+        // Sulla pagina il campo e' un blocco come gli altri.
+        fillColor: blockColor,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        prefixIcon: Icon(Icons.search, color: kText2, size: 20),
+        prefixIconConstraints: const BoxConstraints(minWidth: 46),
         suffixIcon: widget.value.isEmpty
             ? null
             : IconButton(
@@ -358,22 +589,26 @@ class SegmentedToggle extends StatelessWidget {
   final ValueChanged<int> onChanged;
   final bool compact;
 
+  /// Colore del binario: kSurface sulla pagina, kSurface2 dentro un blocco.
+  final Color? trackColor;
+
   const SegmentedToggle({
     super.key,
     required this.labels,
     required this.selected,
     required this.onChanged,
     this.compact = false,
+    this.trackColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final radius = compact ? 8.0 : kRadiusControl;
     return Container(
+      height: compact ? 34 : 40,
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: kSurface2,
-        borderRadius: BorderRadius.circular(radius + 2),
+        color: trackColor ?? kSurface,
+        borderRadius: BorderRadius.circular(kRadius),
       ),
       child: Row(
         mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
@@ -388,13 +623,12 @@ class SegmentedToggle extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 160),
               curve: Curves.easeOut,
-              padding: EdgeInsets.symmetric(
-                  vertical: compact ? 6 : 9, horizontal: compact ? 12 : 8),
+              padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 8),
               decoration: BoxDecoration(
                 color: isSel
                     ? (isDarkTheme ? kSurface3 : Colors.white)
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(radius),
+                borderRadius: BorderRadius.circular(kRadius - 2),
                 boxShadow: isSel && !isDarkTheme
                     ? [
                         BoxShadow(
@@ -408,10 +642,10 @@ class SegmentedToggle extends StatelessWidget {
               alignment: Alignment.center,
               child: Text(
                 e.value,
-                style: GoogleFonts.inter(
-                  fontSize: compact ? 12.5 : 13.5,
+                style: TextStyle(
+                  fontSize: compact ? 13.5 : 14,
                   fontWeight: isSel ? FontWeight.w600 : FontWeight.w500,
-                  color: isSel ? kText : kText3,
+                  color: isSel ? kText : kText2,
                 ),
               ),
             ),
@@ -423,9 +657,104 @@ class SegmentedToggle extends StatelessWidget {
   }
 }
 
+// ─── BLOCCO ─────────────────────────────────────────────────────────────────
+// Il contenitore di base: un riquadro grigio con le righe dentro, separate da
+// una linea rientrata (a filo a destra, mai dopo l'ultima riga).
+class Block extends StatelessWidget {
+  final List<Widget> children;
+
+  /// Margine esterno: di solito il margine di pagina ai lati.
+  final EdgeInsetsGeometry margin;
+
+  /// Rientro a sinistra delle linee fra le righe.
+  final double indent;
+
+  /// false per i blocchi che contengono un solo pezzo (grafico, mappa).
+  final bool dividers;
+  final EdgeInsetsGeometry padding;
+
+  const Block({
+    super.key,
+    required this.children,
+    this.margin = const EdgeInsets.symmetric(horizontal: kGapPage),
+    this.indent = kBlockInset,
+    this.dividers = true,
+    this.padding = EdgeInsets.zero,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      if (i > 0 && dividers) {
+        items.add(Divider(height: 1, thickness: 1, indent: indent));
+      }
+      items.add(children[i]);
+    }
+    return Padding(
+      padding: margin,
+      child: Material(
+        color: blockColor,
+        borderRadius: BorderRadius.circular(kRadius),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: padding,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: items,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Colore dei blocchi: nel tema chiaro un grigio appena accennato, perche' il
+/// fondo e kSurface sono entrambi bianchi.
+Color get blockColor =>
+    isDarkTheme ? kSurface : kSurface2.withValues(alpha: 0.7);
+
+/// Un riquadro grigio senza righe: grafici, mappa del corpo, anteprime.
+class AppCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final VoidCallback? onTap;
+  final Color? borderColor;
+
+  const AppCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(16),
+    this.onTap,
+    this.borderColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: blockColor,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(kRadius),
+        side: borderColor == null
+            ? BorderSide.none
+            : BorderSide(color: borderColor!),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: padding,
+          child: SizedBox(width: double.infinity, child: child),
+        ),
+      ),
+    );
+  }
+}
+
 // ─── RIGA DI LISTA ──────────────────────────────────────────────────────────
-// La riga piatta che sostituisce le card: titolo, riga secondaria, qualcosa
-// a destra. La linea sotto separa senza incorniciare.
+// La riga di un blocco: titolo, riga secondaria, qualcosa a destra. Le linee
+// fra le righe le disegna il Block.
 class ListRow extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -434,10 +763,14 @@ class ListRow extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
-  final bool divider;
   final Color? titleColor;
+
+  /// Stile del titolo: di default [T.title]; le righe di impostazioni usano
+  /// il piu' leggero [T.body].
+  final TextStyle? titleStyle;
   final EdgeInsetsGeometry padding;
   final int subtitleMaxLines;
+  final double minHeight;
 
   const ListRow({
     super.key,
@@ -448,56 +781,57 @@ class ListRow extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.onLongPress,
-    this.divider = true,
     this.titleColor,
-    this.padding = const EdgeInsets.symmetric(horizontal: kGapPage, vertical: 13),
+    this.titleStyle,
+    this.padding = const EdgeInsets.fromLTRB(kBlockInset, 14, 12, 14),
     this.subtitleMaxLines = 3,
+    this.minHeight = 56,
   });
 
   @override
   Widget build(BuildContext context) {
-    final row = InkWell(
+    final style = titleStyle ?? T.title;
+    return InkWell(
       onTap: onTap,
       onLongPress: onLongPress,
-      child: Padding(
-        padding: padding,
-        child: Row(
-          children: [
-            if (leading != null) ...[leading!, const SizedBox(width: 14)],
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: T.body.copyWith(color: titleColor ?? kText)),
-                  if (subtitleWidget != null) ...[
-                    const SizedBox(height: 3),
-                    subtitleWidget!,
-                  ] else if (subtitle != null && subtitle!.isNotEmpty) ...[
-                    const SizedBox(height: 3),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: minHeight),
+        child: Padding(
+          padding: padding,
+          child: Row(
+            children: [
+              if (leading != null) ...[leading!, const SizedBox(width: 16)],
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      subtitle!,
-                      style: T.meta,
-                      maxLines: subtitleMaxLines,
+                      title,
+                      style: style.copyWith(color: titleColor ?? style.color),
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (subtitleWidget != null) ...[
+                      const SizedBox(height: 5),
+                      subtitleWidget!,
+                    ] else if (subtitle != null && subtitle!.isNotEmpty) ...[
+                      const SizedBox(height: 5),
+                      Text(
+                        subtitle!,
+                        style: T.meta,
+                        maxLines: subtitleMaxLines,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-            if (trailing != null) ...[const SizedBox(width: 12), trailing!],
-          ],
+              if (trailing != null) ...[const SizedBox(width: 12), trailing!],
+            ],
+          ),
         ),
       ),
-    );
-    if (!divider) return row;
-    // Linea rientrata come il testo: separa senza incorniciare.
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        row,
-        const Divider(indent: kGapPage, endIndent: kGapPage),
-      ],
     );
   }
 }
@@ -510,7 +844,7 @@ class RowChevron extends StatelessWidget {
   RowChevron({super.key});
   @override
   Widget build(BuildContext context) =>
-      Icon(Icons.chevron_right, size: 20, color: kText3);
+      Icon(Icons.chevron_right, size: 22, color: kTextFaint);
 }
 
 // ─── RIGA SERIE ─────────────────────────────────────────────────────────────
@@ -541,51 +875,55 @@ class SeriesRow extends StatelessWidget {
         onDelete();
       },
       background: Container(
+        color: kRed.withValues(alpha: 0.12),
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 4),
+        padding: const EdgeInsets.only(right: 18),
         child: const Icon(Icons.delete_outline, color: kRed, size: 20),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 9),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 26,
-                child: Text(
-                  '${index + 1}',
-                  style: T.label.copyWith(
-                    fontSize: 14,
-                    fontFeatures: kTabular,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 46),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(kBlockInset, 10, 12, 10),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 30,
+                  child: Text(
+                    '${index + 1}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: kText2,
+                      fontFeatures: kTabular,
+                    ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 2,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      '${formatWeight(series.weight)} kg × ${series.reps}',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: kText,
-                        letterSpacing: -0.2,
-                        fontFeatures: kTabular,
+                Expanded(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 2,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        '${formatWeight(series.weight)} kg × ${series.reps}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: kText,
+                          fontFeatures: kTabular,
+                        ),
                       ),
-                    ),
-                    SeriesBadge(series.type),
-                    if (series.type == SeriesType.drop &&
-                        series.drops.isNotEmpty)
-                      DropsDisplay(series.drops),
-                  ],
+                      SeriesBadge(series.type),
+                      if (series.type == SeriesType.drop &&
+                          series.drops.isNotEmpty)
+                        DropsDisplay(series.drops),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -593,69 +931,82 @@ class SeriesRow extends StatelessWidget {
   }
 }
 
-// ─── SECTION TITLE ──────────────────────────────────────────────────────────
+// ─── ETICHETTA DI SEZIONE ───────────────────────────────────────────────────
+/// "GIORNI PREIMPOSTATI": maiuscolo, piccolo, spaziato. A destra un'azione o
+/// un dato (che resta in minuscolo).
 class SectionTitle extends StatelessWidget {
   final String text;
   final Widget? trailing;
+
+  /// Accanto al testo (per esempio una freccia ▾ o una faccina).
+  final Widget? after;
   final EdgeInsetsGeometry padding;
+  final VoidCallback? onTap;
+
   const SectionTitle(
     this.text, {
     super.key,
     this.trailing,
-    this.padding = const EdgeInsets.fromLTRB(kGapPage, 22, kGapPage, 6),
-  });
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: padding,
-        child: Row(
-          children: [
-            Expanded(child: Text(text, style: T.label)),
-            if (trailing != null) trailing!,
-          ],
-        ),
-      );
-}
-
-// ─── BLOCCO ─────────────────────────────────────────────────────────────────
-// Un riquadro tenue, senza bordo: per i pochi casi in cui serve raggruppare
-// (grafico, mappa del corpo, anteprime).
-class AppCard extends StatelessWidget {
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final VoidCallback? onTap;
-  final Color? borderColor;
-
-  const AppCard({
-    super.key,
-    required this.child,
-    this.padding = const EdgeInsets.all(16),
+    this.after,
     this.onTap,
-    this.borderColor,
+    this.padding = const EdgeInsets.fromLTRB(kGapPage, 24, kGapPage, 8),
   });
 
   @override
   Widget build(BuildContext context) {
-    final card = Container(
-      width: double.infinity,
-      padding: padding,
-      decoration: BoxDecoration(
-        color: isDarkTheme ? kSurface : kSurface2.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(kRadiusCard),
-        border: borderColor != null ? Border.all(color: borderColor!) : null,
-      ),
-      child: child,
+    Widget label = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: Text(
+            text.toUpperCase(),
+            style: T.section,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (after != null) ...[const SizedBox(width: 4), after!],
+      ],
     );
-    if (onTap == null) return card;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(kRadiusCard),
+    if (onTap != null) {
+      label = GestureDetector(
         onTap: onTap,
-        child: card,
+        behavior: HitTestBehavior.opaque,
+        child: label,
+      );
+    }
+    return Padding(
+      padding: padding,
+      child: SizedBox(
+        height: 32,
+        child: Row(
+          children: [
+            Expanded(
+              child: Align(alignment: Alignment.centerLeft, child: label),
+            ),
+            if (trailing != null) trailing!,
+          ],
+        ),
       ),
     );
   }
+}
+
+/// Dato a destra di un'etichetta di sezione ("7 allenamenti").
+class SectionMeta extends StatelessWidget {
+  final String text;
+  const SectionMeta(this.text, {super.key});
+
+  @override
+  Widget build(BuildContext context) => Text(
+        text,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: kText2,
+          fontFeatures: kTabular,
+        ),
+      );
 }
 
 // ─── TIPO SERIE ─────────────────────────────────────────────────────────────
@@ -694,54 +1045,31 @@ class DropsDisplay extends StatelessWidget {
   }
 }
 
-// ─── ULTIMA VOLTA / RECORD ──────────────────────────────────────────────────
-// Contesto dentro lo sheet serie: due viste (ultima sessione, record) scelte
-// con un toggle esplicito. Testo su fondo tenue, niente cornici colorate.
-class LastSessionCard extends StatefulWidget {
+// ─── ULTIMA VOLTA ───────────────────────────────────────────────────────────
+// Contesto dentro lo sheet serie: le serie dell'ultima volta (nello stesso
+// giorno preimpostato), con quella che stai per fare in evidenza.
+class LastSessionCard extends StatelessWidget {
   final String date;
   final List<Series> series;
-  final List<Series>? bestSeries;
   final VoidCallback? onUseSeries;
-  final VoidCallback? onUseBestSeries;
   final int currentSeriesIndex;
 
   const LastSessionCard({
     super.key,
     required this.date,
     required this.series,
-    this.bestSeries,
     this.onUseSeries,
-    this.onUseBestSeries,
     this.currentSeriesIndex = 0,
   });
 
   @override
-  State<LastSessionCard> createState() => _LastSessionCardState();
-}
-
-class _LastSessionCardState extends State<LastSessionCard> {
-  int _page = 0;
-
-  bool get _hasLast => widget.series.isNotEmpty;
-  bool get _hasBest =>
-      widget.bestSeries != null && widget.bestSeries!.isNotEmpty;
-
-  /// Il toggle serve solo se ci sono davvero due viste: passando una lista di
-  /// serie vuota la card diventa la sola vista "record".
-  bool get _canToggle => _hasLast && _hasBest;
-
-  @override
   Widget build(BuildContext context) {
-    final showBest = _hasBest && (_page == 1 || !_hasLast);
-    final list = showBest ? widget.bestSeries! : widget.series;
-    final onUse = showBest ? widget.onUseBestSeries : widget.onUseSeries;
-
     return Container(
-      margin: const EdgeInsets.only(bottom: 18),
-      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
       decoration: BoxDecoration(
         color: kSurface2,
-        borderRadius: BorderRadius.circular(kRadiusCard),
+        borderRadius: BorderRadius.circular(kRadius),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -749,74 +1077,64 @@ class _LastSessionCardState extends State<LastSessionCard> {
         children: [
           Row(
             children: [
+              Text(S.get('last_time').toUpperCase(), style: T.section),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  showBest
-                      ? S.get('best_ever_sub')
-                      : (_canToggle
-                          ? widget.date
-                          : '${S.get('last_time')} · ${widget.date}'),
-                  style: T.label.copyWith(fontSize: 12.5),
+                  date,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(fontSize: 13, color: kText2),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (_canToggle)
-                SegmentedToggle(
-                  compact: true,
-                  labels: [S.get('tab_last'), S.get('tab_best')],
-                  selected: _page,
-                  onChanged: (i) => setState(() => _page = i),
-                ),
-              if (!_canToggle) const SizedBox(width: 6),
             ],
           ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: Wrap(
-              spacing: 14,
-              runSpacing: 4,
-              children: list.asMap().entries.map((e) {
-                final current = !showBest && e.key == widget.currentSeriesIndex;
-                return Text(
-                  e.value.summary,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: current ? FontWeight.w600 : FontWeight.w400,
-                    color: current ? kText : kText2,
-                    fontFeatures: kTabular,
-                  ),
-                );
-              }).toList(),
-            ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 16,
+            runSpacing: 4,
+            children: series.asMap().entries.map((e) {
+              final current = e.key == currentSeriesIndex;
+              return Text(
+                e.value.summary,
+                style: TextStyle(
+                  fontSize: 17,
+                  letterSpacing: 0.2,
+                  fontWeight: current ? FontWeight.w700 : FontWeight.w400,
+                  color: current ? kText : kText2,
+                  fontFeatures: kTabular,
+                ),
+              );
+            }).toList(),
           ),
-          if (onUse != null)
+          if (onUseSeries != null)
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton(
-                onPressed: onUse,
+                onPressed: onUseSeries,
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
-                  minimumSize: const Size(0, 34),
+                  minimumSize: const Size(0, 42),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  foregroundColor: kAccent,
+                  foregroundColor: kAccentText,
                 ),
                 child: Text(
-                  showBest
-                      ? S.get('use_best_values')
-                      : S.get('use_same_values'),
-                  style: const TextStyle(fontSize: 13.5),
+                  S.get('use_same_values'),
+                  style: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w600),
                 ),
               ),
-            ),
+            )
+          else
+            const SizedBox(height: 10),
         ],
       ),
     );
   }
 }
 
-// ─── METRICA ────────────────────────────────────────────────────────────────
-/// Un numero con la sua etichetta, senza riquadro.
+// ─── METRICHE ───────────────────────────────────────────────────────────────
+/// Un numero con la sua etichetta in maiuscolo.
 class Metric extends StatelessWidget {
   final String value;
   final String label;
@@ -830,14 +1148,56 @@ class Metric extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(value,
-              style: T.number.copyWith(
-                  fontSize: 24, color: valueColor ?? kText),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.4,
+                color: valueColor ?? kText,
+                fontFeatures: kTabular,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 2),
-          Text(label, style: T.label.copyWith(fontSize: 12)),
+          const SizedBox(height: 4),
+          Text(label.toUpperCase(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: T.section.copyWith(fontSize: 11, letterSpacing: 1.1)),
         ],
       );
+}
+
+/// Piu' metriche affiancate in un blocco, separate da linee verticali.
+class StatsBlock extends StatelessWidget {
+  final List<Metric> metrics;
+  const StatsBlock({super.key, required this.metrics});
+
+  @override
+  Widget build(BuildContext context) {
+    final cells = <Widget>[];
+    for (var i = 0; i < metrics.length; i++) {
+      if (i > 0) cells.add(Container(width: 1, color: kLine));
+      cells.add(Expanded(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 10, 14),
+          child: metrics[i],
+        ),
+      ));
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: kGapPage),
+      child: Material(
+        color: blockColor,
+        borderRadius: BorderRadius.circular(kRadius),
+        clipBehavior: Clip.antiAlias,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: cells,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ─── EMPTY STATE ────────────────────────────────────────────────────────────
@@ -899,12 +1259,17 @@ class EmptyState extends StatelessWidget {
 }
 
 // ─── PICKER A PASTIGLIE ─────────────────────────────────────────────────────
-/// Una pastiglia selezionabile: piena (testo invertito) se scelta.
+/// Una pastiglia selezionabile. Scelta: grigio un po' piu' chiaro con un
+/// bordino, non un blocco bianco pieno che grida piu' del resto.
+/// [color] colora il testo della pastiglia scelta (tipo serie speciale).
 class Pill extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback? onTap;
   final Color? color;
+
+  /// Fondo quando non e' scelta: kSurface2 negli sheet, kSurface sulla pagina.
+  final Color? background;
 
   const Pill({
     super.key,
@@ -912,11 +1277,11 @@ class Pill extends StatelessWidget {
     required this.selected,
     this.onTap,
     this.color,
+    this.background,
   });
 
   @override
   Widget build(BuildContext context) {
-    final active = color ?? kText;
     return GestureDetector(
       onTap: onTap == null
           ? null
@@ -926,20 +1291,32 @@ class Pill extends StatelessWidget {
             },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 140),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: selected ? active : kSurface2,
-          borderRadius: BorderRadius.circular(kRadiusControl),
+          color: selected
+              ? (isDarkTheme ? kSurface3 : Colors.white)
+              : (background ?? kSurface2),
+          borderRadius: BorderRadius.circular(kRadius),
+          border: Border.all(
+            color: selected ? kDashed : Colors.transparent,
+            width: 1,
+          ),
         ),
-        child: Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 13.5,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-            color: selected
-                ? (color == null ? kBg : Colors.white)
-                : (onTap == null ? kText3 : kText2),
-            fontFeatures: kTabular,
+        // widthFactor 1: centrata in altezza senza allargarsi a tutta riga
+        // dentro i Wrap (con alignment sul Container succedeva).
+        child: Align(
+          widthFactor: 1,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+              color: selected
+                  ? (color ?? kText)
+                  : (onTap == null ? kText3 : kTextSoft),
+              fontFeatures: kTabular,
+            ),
           ),
         ),
       ),
@@ -1020,7 +1397,8 @@ class _RestPickerDialogState extends State<RestPickerDialog> {
         if (widget.initial != null)
           TextButton(
             onPressed: () => Navigator.pop(context, 0),
-            child: Text(S.get('remove_rest'), style: const TextStyle(color: kRed)),
+            child:
+                Text(S.get('remove_rest'), style: const TextStyle(color: kRed)),
           ),
         TextButton(
           onPressed: () => Navigator.pop(context),
@@ -1057,7 +1435,7 @@ class StepButton extends StatelessWidget {
           child: Center(
             child: Text(
               label,
-              style: GoogleFonts.inter(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: kText2,
@@ -1087,15 +1465,15 @@ class RestBadge extends StatelessWidget {
     final color = seconds == null || inherited ? kText3 : kText2;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(kRadius),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.timer_outlined, size: 15, color: color),
+            Icon(Icons.timer_outlined, size: 16, color: color),
             if (seconds != null) ...[
-              const SizedBox(width: 3),
+              const SizedBox(width: 5),
               Text(
                 formatRest(seconds!),
                 style: TextStyle(
@@ -1126,8 +1504,12 @@ class CategoryChip extends StatelessWidget {
       required this.onTap});
 
   @override
-  Widget build(BuildContext context) =>
-      Pill(label: label, selected: selected, onTap: onTap);
+  Widget build(BuildContext context) => Pill(
+        label: label,
+        selected: selected,
+        onTap: onTap,
+        background: blockColor,
+      );
 }
 
 /// Riga di filtri per categoria a scorrimento orizzontale.
@@ -1147,7 +1529,7 @@ class CategoryFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     if (categories.isEmpty) return const SizedBox.shrink();
     return SizedBox(
-      height: 40,
+      height: 36,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: kGapPage),
@@ -1158,7 +1540,7 @@ class CategoryFilterBar extends StatelessWidget {
             onTap: () => onChanged(''),
           ),
           for (final c in categories) ...[
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             CategoryChip(
               label: c,
               selected: selected == c,
@@ -1196,7 +1578,7 @@ class DayChip extends StatelessWidget {
   final VoidCallback? onTap;
   final double fontSize;
 
-  const DayChip({super.key, this.dayName, this.onTap, this.fontSize = 13});
+  const DayChip({super.key, this.dayName, this.onTap, this.fontSize = 14});
 
   @override
   Widget build(BuildContext context) {
@@ -1205,7 +1587,7 @@ class DayChip extends StatelessWidget {
       named ? dayName!.trim() : S.get('free_workout'),
       style: TextStyle(
         fontSize: fontSize,
-        color: named ? kText : kText3,
+        color: named ? kTextSoft : kText2,
         fontWeight: FontWeight.w500,
       ),
       overflow: TextOverflow.ellipsis,
@@ -1219,7 +1601,7 @@ class DayChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Flexible(child: label),
-          Icon(Icons.expand_more, size: fontSize + 4, color: kText3),
+          Icon(Icons.expand_more, size: fontSize + 4, color: kText2),
         ],
       ),
     );
@@ -1257,23 +1639,25 @@ class HistoryHitRow extends StatelessWidget {
 
     return InkWell(
       onTap: onUse,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(kRadius),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('$day · $dateLabel',
-                      style: T.label.copyWith(fontSize: 12.5)),
-                  const SizedBox(height: 2),
+                      style: TextStyle(fontSize: 13, color: kText2)),
+                  const SizedBox(height: 4),
                   Text(
                     summary,
                     style: TextStyle(
-                      fontSize: 14.5,
-                      color: secondary ? kText2 : kText,
+                      fontSize: 15,
+                      letterSpacing: 0.2,
+                      color: secondary ? kTextSoft : kText,
                       fontFeatures: kTabular,
                     ),
                     maxLines: secondary ? 1 : 2,
@@ -1286,8 +1670,8 @@ class HistoryHitRow extends StatelessWidget {
               const SizedBox(width: 8),
               Text(S.get('use'),
                   style: TextStyle(
-                      fontSize: 13,
-                      color: kAccent,
+                      fontSize: 15,
+                      color: kAccentText,
                       fontWeight: FontWeight.w600)),
             ],
           ],
@@ -1310,27 +1694,30 @@ class PendingSeriesRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 9),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 26,
-              child: Text(
-                '${index + 1}',
-                style: T.label.copyWith(
-                  fontSize: 14,
-                  color: kText3.withValues(alpha: 0.6),
-                  fontFeatures: kTabular,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 46),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(kBlockInset, 10, 12, 10),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 30,
+                child: Text(
+                  '${index + 1}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: kTextFaint,
+                    fontFeatures: kTabular,
+                  ),
                 ),
               ),
-            ),
-            Text(
-              '— ${S.get('series_to_do')}',
-              style: TextStyle(fontSize: 15, color: kText3),
-            ),
-          ],
+              Text(
+                S.get('series_to_do'),
+                style: TextStyle(fontSize: 16, color: kTextFaint),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1374,7 +1761,8 @@ class _TargetSeriesDialogState extends State<TargetSeriesDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(S.get('target_series_desc'), style: T.meta.copyWith(height: 1.4)),
+            Text(S.get('target_series_desc'),
+                style: T.meta.copyWith(height: 1.4)),
             const SizedBox(height: 16),
             Wrap(
               spacing: 8,
@@ -1421,6 +1809,17 @@ IconData moodIcon(int mood) => switch (mood.clamp(1, 5)) {
       _ => Icons.sentiment_very_satisfied_outlined,
     };
 
+/// Colore della faccina: dal rosso (malissimo) al verde (benissimo). Si legge
+/// l'umore di una sessione a colpo d'occhio, nello Storico e a fine
+/// allenamento.
+Color moodColor(int mood) => switch (mood.clamp(1, 5)) {
+      1 => kRed,
+      2 => kOrange,
+      3 => const Color(0xFFFACC15),
+      4 => const Color(0xFFA3E635),
+      _ => kGreen,
+    };
+
 /// Etichetta per un voto da 1 a 5.
 String moodLabel(int mood) => S.get('mood_${mood.clamp(1, 5)}');
 
@@ -1436,7 +1835,7 @@ class RatingBadge extends StatelessWidget {
   Widget build(BuildContext context) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(moodIcon(rating), color: kText2, size: fontSize + 5),
+          Icon(moodIcon(rating), color: moodColor(rating), size: fontSize + 7),
           if (showLabel) ...[
             const SizedBox(width: 4),
             Text(
@@ -1464,8 +1863,7 @@ class RatingDialog extends StatefulWidget {
       {int? initial, String? confirmText}) {
     return showDialog<int>(
       context: context,
-      builder: (_) =>
-          RatingDialog(initial: initial, confirmText: confirmText),
+      builder: (_) => RatingDialog(initial: initial, confirmText: confirmText),
     );
   }
 
@@ -1501,7 +1899,7 @@ class _RatingDialogState extends State<RatingDialog> {
                 moodIcon(_selected),
                 key: ValueKey(_selected),
                 size: 84,
-                color: kText,
+                color: moodColor(_selected),
               ),
             ),
           ),
@@ -1512,12 +1910,18 @@ class _RatingDialogState extends State<RatingDialog> {
           // le cinque faccine piccole.
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Slider(
-              min: 1,
-              max: 5,
-              divisions: 4,
-              value: _selected.toDouble(),
-              onChanged: (v) => _set(v.round()),
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: moodColor(_selected),
+                thumbColor: moodColor(_selected),
+              ),
+              child: Slider(
+                min: 1,
+                max: 5,
+                divisions: 4,
+                value: _selected.toDouble(),
+                onChanged: (v) => _set(v.round()),
+              ),
             ),
           ),
           Padding(
@@ -1532,8 +1936,8 @@ class _RatingDialogState extends State<RatingDialog> {
                     onTap: () => _set(i),
                     child: Icon(
                       moodIcon(i),
-                      size: 20,
-                      color: i == _selected ? kText : kText3,
+                      size: 22,
+                      color: i == _selected ? moodColor(i) : kText3,
                     ),
                   ),
               ],
@@ -1575,8 +1979,7 @@ Future<String?> showNoteEditor(
           if (previous != null && (current == null || current.isEmpty)) ...[
             Text(S.get('previous_note'), style: T.label.copyWith(fontSize: 12)),
             const SizedBox(height: 4),
-            Text(previous,
-                style: T.meta.copyWith(fontStyle: FontStyle.italic)),
+            Text(previous, style: T.meta.copyWith(fontStyle: FontStyle.italic)),
             const SizedBox(height: 14),
           ],
           TextField(
@@ -1645,16 +2048,16 @@ Future<void> showActionSheet(
                 },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: kGapPage, vertical: 14),
+                      horizontal: kGapPage, vertical: 15),
                   child: Row(
                     children: [
                       Icon(a.icon,
-                          size: 21, color: a.destructive ? kRed : kText2),
-                      const SizedBox(width: 16),
+                          size: 22, color: a.destructive ? kRed : kText2),
+                      const SizedBox(width: 18),
                       Text(
                         a.label,
-                        style: T.body.copyWith(
-                            color: a.destructive ? kRed : kText),
+                        style: T.body
+                            .copyWith(color: a.destructive ? kRed : kText),
                       ),
                     ],
                   ),

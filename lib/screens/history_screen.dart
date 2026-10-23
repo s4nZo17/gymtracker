@@ -1,8 +1,8 @@
 // lib/screens/history_screen.dart
 //
-// Storico: un elenco piatto di sessioni, raggruppate per mese. Una riga per
-// allenamento (data, giorno, quanto hai fatto); tocchi e si apre la sessione,
-// che si modifica con gli stessi blocchi di Oggi.
+// Storico: le sessioni raggruppate per mese, un blocco per mese. Una riga per
+// allenamento (data, giorno, quanto hai fatto, com'e' andata); tocchi e si
+// apre la sessione, che si modifica con gli stessi blocchi di Oggi.
 //
 // Prima la card si espandeva sul posto, con bottoni e cinque icone per
 // esercizio: in lista ora resta solo cio' che serve a riconoscere un giorno.
@@ -59,30 +59,38 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 .toList();
 
         final locale = state.prefs.language == 'en' ? 'en_US' : 'it_IT';
-        final now = DateTime.now();
-        final thisMonth = all.where((s) {
-          final d = DateTime.tryParse(s.date);
-          return d != null && d.year == now.year && d.month == now.month;
-        }).length;
 
-        final items = <Widget>[];
-        String currentMonth = '';
+        // Un blocco per mese, con quanti allenamenti a destra.
+        final months = <String, List<WorkoutSession>>{};
         for (final s in sessions) {
           final d = DateTime.tryParse(s.date);
           final monthKey = d == null
               ? ''
               : DateFormat('MMMM yyyy', locale).format(DateTime(d.year, d.month));
-          if (monthKey != currentMonth) {
-            currentMonth = monthKey;
-            items.add(SectionTitle(_capitalize(monthKey)));
-          }
-          items.add(_SessionRow(
-            session: s,
-            locale: locale,
-            highlight: term,
-            isActive: identical(s, state.todaySession),
-          ));
+          months.putIfAbsent(monthKey, () => []).add(s);
         }
+        final items = <Widget>[
+          for (final entry in months.entries) ...[
+            SectionTitle(
+              entry.key,
+              trailing: SectionMeta(
+                  '${entry.value.length} ${S.get(entry.value.length == 1 ? 'workout_single' : 'workouts_count')}'),
+            ),
+            Block(
+              // La linea parte dopo la colonna della data.
+              indent: 68,
+              children: [
+                for (final s in entry.value)
+                  _SessionRow(
+                    session: s,
+                    locale: locale,
+                    highlight: term,
+                    isActive: identical(s, state.todaySession),
+                  ),
+              ],
+            ),
+          ],
+        ];
 
         return Scaffold(
           backgroundColor: kBg,
@@ -90,9 +98,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
             children: [
               PageHeader(
                 title: S.get('history'),
-                subtitle: all.isEmpty
+                meta: all.isEmpty
                     ? null
-                    : '${all.length} ${S.get('workouts_count')} · $thisMonth ${S.get('this_month_short')}',
+                    : '${all.length} ${S.get('workouts_count')}',
                 bottom: all.isEmpty
                     ? null
                     : AppSearchField(
@@ -126,9 +134,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 }
-
-String _capitalize(String s) =>
-    s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
 class _SessionRow extends StatelessWidget {
   final WorkoutSession session;
@@ -165,17 +170,29 @@ class _SessionRow extends StatelessWidget {
     return ListRow(
       title: title,
       subtitle: meta,
+      subtitleMaxLines: 1,
+      minHeight: 72,
       leading: SizedBox(
-        width: 40,
+        width: 34,
         child: Column(
           children: [
             Text(
               DateFormat('d', locale).format(date),
-              style: T.title.copyWith(fontSize: 19, fontFeatures: kTabular),
+              style: TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.w700,
+                height: 1.0,
+                color: kText,
+                fontFeatures: kTabular,
+              ),
             ),
+            const SizedBox(height: 4),
             Text(
-              DateFormat('EEE', locale).format(date).replaceAll('.', ''),
-              style: T.label.copyWith(fontSize: 12),
+              DateFormat('EEE', locale)
+                  .format(date)
+                  .replaceAll('.', '')
+                  .toUpperCase(),
+              style: T.section.copyWith(fontSize: 11, letterSpacing: 1),
             ),
           ],
         ),
@@ -187,12 +204,15 @@ class _SessionRow extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 6),
               child: Text(S.get('in_progress'),
-                  style: T.label.copyWith(color: kAccent, fontSize: 12)),
+                  style: TextStyle(
+                      color: kAccentText,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600)),
             )
           else if (session.rating != null)
             Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: RatingBadge(session.rating!, fontSize: 13, showLabel: false),
+              padding: const EdgeInsets.only(right: 6),
+              child: RatingBadge(session.rating!, fontSize: 15, showLabel: false),
             ),
           RowChevron(),
         ],

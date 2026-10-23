@@ -127,11 +127,12 @@ class _SetupWizardState extends State<SetupWizard> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(kGapPage, 28, kGapPage, 0),
-              child: Text('GymTracker  ·  ${_page + 1}/3', style: T.label),
+              child: Text('GYMTRACKER  ·  ${_page + 1}/3', style: T.section),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(kGapPage, 18, kGapPage, 28),
-              child: Text(titles[_page], style: T.display),
+              padding: const EdgeInsets.fromLTRB(kGapPage, 18, kGapPage, 32),
+              child: Text(titles[_page],
+                  style: T.display.copyWith(fontSize: 36, height: 1.1)),
             ),
             Expanded(
               child: AnimatedSwitcher(
@@ -181,9 +182,10 @@ class _SetupWizardState extends State<SetupWizard> {
       {String? detail}) {
     return ListRow(
       title: label,
+      titleStyle: T.body,
       subtitle: detail,
       trailing: selected
-          ? Icon(Icons.check, color: kText, size: 22)
+          ? Icon(Icons.check, color: kAccentText, size: 22)
           : const SizedBox(width: 22),
       onTap: () {
         HapticFeedback.selectionClick();
@@ -195,15 +197,16 @@ class _SetupWizardState extends State<SetupWizard> {
   Widget _buildLanguagePage() {
     return ListView(
       children: [
-        const Divider(indent: kGapPage, endIndent: kGapPage),
-        _option('Italiano', _lang == 'it', () => setState(() {
-              _lang = 'it';
-              S.setLang('it');
-            })),
-        _option('English', _lang == 'en', () => setState(() {
-              _lang = 'en';
-              S.setLang('en');
-            })),
+        Block(children: [
+          _option('Italiano', _lang == 'it', () => setState(() {
+                _lang = 'it';
+                S.setLang('it');
+              })),
+          _option('English', _lang == 'en', () => setState(() {
+                _lang = 'en';
+                S.setLang('en');
+              })),
+        ]),
       ],
     );
   }
@@ -211,13 +214,14 @@ class _SetupWizardState extends State<SetupWizard> {
   Widget _buildDateFormatPage() {
     return ListView(
       children: [
-        const Divider(indent: kGapPage, endIndent: kGapPage),
-        _option(_it ? 'Giorno, mese' : 'Day, month', _dateFormat == 'dd-MM',
-            () => setState(() => _dateFormat = 'dd-MM'),
-            detail: '22-02'),
-        _option(_it ? 'Mese, giorno' : 'Month, day', _dateFormat == 'MM-dd',
-            () => setState(() => _dateFormat = 'MM-dd'),
-            detail: '02-22'),
+        Block(children: [
+          _option(_it ? 'Giorno, mese' : 'Day, month', _dateFormat == 'dd-MM',
+              () => setState(() => _dateFormat = 'dd-MM'),
+              detail: '22-02'),
+          _option(_it ? 'Mese, giorno' : 'Month, day', _dateFormat == 'MM-dd',
+              () => setState(() => _dateFormat = 'MM-dd'),
+              detail: '02-22'),
+        ]),
       ],
     );
   }
@@ -235,11 +239,11 @@ class _SetupWizardState extends State<SetupWizard> {
           }),
         ),
         const SizedBox(height: 28),
-        Text(S.get('setup_accent'), style: T.label),
-        const SizedBox(height: 12),
+        Text(S.get('setup_accent').toUpperCase(), style: T.section),
+        const SizedBox(height: 14),
         Wrap(
-          spacing: 12,
-          runSpacing: 12,
+          spacing: 10,
+          runSpacing: 10,
           children: [
             ...accentPresets.map((p) => AccentDot(
                   color: p.primary,
@@ -392,12 +396,13 @@ class MainShellState extends State<MainShell> {
           key: TourKeys.bottomNav,
           decoration: BoxDecoration(
             color: kBg,
-            border: Border(top: BorderSide(color: kLine)),
+            border: Border(top: BorderSide(color: kNavBorder)),
           ),
           child: SafeArea(
             top: false,
-            child: SizedBox(
-              height: 58,
+            child: Container(
+              height: 66,
+              padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
               child: Row(
                 children: [
                   _navItem(todayTab, Icons.fitness_center, S.get('today')),
@@ -414,11 +419,11 @@ class MainShellState extends State<MainShell> {
     );
   }
 
-  /// Voce della barra: monocroma. Quella attiva e' a pieno contrasto, le
-  /// altre spente; niente pillole colorate.
+  /// Voce della barra: quella attiva in accento e in grassetto, le altre
+  /// grigie. Niente pillole o indicatori dietro.
   Widget _navItem(int index, IconData icon, String label) {
     final selected = _currentIndex == index;
-    final color = selected ? kText : kText3;
+    final color = selected ? kAccentText : kText2;
     return Expanded(
       child: InkResponse(
         onTap: () => selectTab(index),
@@ -427,14 +432,17 @@ class MainShellState extends State<MainShell> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 22),
+            Icon(icon, color: color, size: 24),
             const SizedBox(height: 4),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.visible,
+              softWrap: false,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 color: color,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
           ],
